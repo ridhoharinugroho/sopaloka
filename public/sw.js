@@ -1,9 +1,9 @@
 /**
- * SOPALOKA — Service Worker Engine v20260902_v216
+ * SOPALOKA — Service Worker Engine v20260917_v217
  * Next.js App Router Compatible Service Worker
  */
 
-const CACHE_NAME = "sopaloka-pwa-v20260902_v216";
+const CACHE_NAME = "sopaloka-pwa-v20260917_v217";
 const PRECACHE_ASSETS = [
   "/",
   "/admin",
@@ -71,7 +71,8 @@ self.addEventListener("fetch", (event) => {
     requestUrl.hostname.includes("identitytoolkit") ||
     requestUrl.hostname.includes("googleapis.com") ||
     requestUrl.hostname.includes("google-analytics") ||
-    requestUrl.hostname.includes("googletagmanager")
+    requestUrl.hostname.includes("googletagmanager") ||
+    requestUrl.searchParams.has("_rsc") // Bypass Next.js App Router RSC payload caching
   ) {
     return;
   }
