@@ -229,7 +229,7 @@ export const HeroHeader: React.FC<HeroHeaderProps> = ({
         onTouchEnd={() => setIsHoveredOrTouched(false)}
         onMouseEnter={() => setIsHoveredOrTouched(true)}
         onMouseLeave={() => setIsHoveredOrTouched(false)}
-        className="relative z-10 flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-4 px-[calc(50%-128px)] sm:px-[calc(50%-144px)] pt-0 pb-0 scroll-smooth w-full items-center"
+        className="relative z-10 flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-4 px-[calc(50%-75px)] sm:px-[calc(50%-100px)] pt-0 pb-0 scroll-smooth w-full items-center"
       >
         {extendedSlides.map((slide, idx) => {
           const SIcon = slide.Icon;
@@ -239,7 +239,7 @@ export const HeroHeader: React.FC<HeroHeaderProps> = ({
             <div
               key={slide._key}
               data-slide={idx}
-              className={`hero-carousel-slide snap-center flex-none w-64 sm:w-72 aspect-[4/5] overflow-hidden rounded-2xl relative ${slide.imageUrl ? slide.bg : `bg-gradient-to-br ${slide.bg}`} text-white shadow-md flex flex-col justify-between select-none`}
+              className={`hero-carousel-slide snap-center flex-none w-[150px] sm:w-[200px] aspect-[4/5] overflow-hidden rounded-2xl relative ${slide.imageUrl ? slide.bg : `bg-gradient-to-br ${slide.bg}`} text-white shadow-md flex flex-col justify-between select-none`}
             >
               {/* If imageUrl exists, render the full image instead of text */}
               {(slide as any).imageUrl ? (
@@ -251,16 +251,16 @@ export const HeroHeader: React.FC<HeroHeaderProps> = ({
               ) : (
                 <>
                   <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-                  <div className="p-4 sm:p-5 flex flex-col justify-between gap-1 w-full h-full">
+                  <div className="p-3 sm:p-4 flex flex-col justify-between gap-1 w-full h-full">
                     <div className="relative z-10 space-y-1 sm:space-y-1.5">
-                      <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] sm:text-xs font-bold shadow-xs ${slide.iconBg}`}>
+                      <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border text-[9px] sm:text-[10px] font-bold shadow-xs ${slide.iconBg}`}>
                         <SIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         <span>{slide.badgeText}</span>
                       </div>
-                      <h2 className="text-sm sm:text-lg font-bold tracking-tight text-white leading-tight line-clamp-2">
+                      <h2 className="text-xs sm:text-sm font-bold tracking-tight text-white leading-tight line-clamp-2">
                         {slide.title}
                       </h2>
-                      <p className="text-[10px] sm:text-sm text-white/80 leading-tight font-medium opacity-90 line-clamp-3">
+                      <p className="text-[9px] sm:text-[10px] text-white/80 leading-tight font-medium opacity-90 line-clamp-3">
                         {slide.desc}
                       </p>
                     </div>
@@ -269,19 +269,19 @@ export const HeroHeader: React.FC<HeroHeaderProps> = ({
                         <button
                           type="button"
                           onClick={slide.onClick}
-                          className={`px-3 py-1.5 rounded-xl text-[10px] sm:text-sm font-black flex items-center gap-1 shadow-xs transition-transform hover:scale-105 cursor-pointer ${slide.actionBg}`}
+                          className={`px-2 py-1.5 rounded-xl text-[9px] sm:text-[10px] font-black flex items-center gap-1 shadow-xs transition-transform hover:scale-105 cursor-pointer ${slide.actionBg}`}
                         >
-                          {SActionIcon && <SActionIcon className="w-3 h-3 sm:w-4 sm:h-4" />}
+                          {SActionIcon && <SActionIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
                           <span>{slide.actionText}</span>
                         </button>
                       ) : (
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] sm:text-sm font-black ${slide.actionBg}`}>
-                          {SActionIcon && <SActionIcon className="w-3 h-3 sm:w-4 sm:h-4" />}
+                        <span className={`inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black ${slide.actionBg}`}>
+                          {SActionIcon && <SActionIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
                           <span>{slide.actionText}</span>
                         </span>
                       )}
                       {slide.footnote && (
-                        <span className="text-[10px] sm:text-sm font-bold hidden sm:inline line-clamp-1 opacity-80">
+                        <span className="text-[8px] sm:text-[9px] font-bold hidden sm:inline line-clamp-1 opacity-80">
                           {slide.footnote}
                         </span>
                       )}
