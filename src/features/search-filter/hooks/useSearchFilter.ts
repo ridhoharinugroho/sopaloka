@@ -6,7 +6,7 @@ import { mapListingDtoToDomain } from "../../../domain/listing/listing.mapper";
 import { mapFilterDtoToDomain } from "../../../domain/filter/filter.mapper";
 import type { SupabaseListingRowDTO } from "../../../domain/listing/listing.dto";
 
-import { cleanLocationName, getSearchSynonymsCache } from "../../../services/listingService";
+import { cleanLocationName, getSearchSynonymsCache, fetchSynonymsFromSupabase } from "../../../services/listingService";
 
 export interface UseSearchFilterProps {
   initialListings?: SupabaseListingRowDTO[] | ListingModel[];
@@ -57,6 +57,29 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
 
   // Effective category considers prop priority over internal state
   const effectiveCategory = category !== undefined ? category : filterState.category;
+
+  // Reactive synonyms state loaded with master defaults and synced with Supabase
+  const [synonymsCache, setSynonymsCache] = useState<Record<string, string[]>>(() => getSearchSynonymsCache());
+
+  useEffect(() => {
+    // 1. Fetch live synonyms from Supabase
+    fetchSynonymsFromSupabase().then((data) => {
+      if (data && Object.keys(data).length > 0) {
+        setSynonymsCache(data);
+      }
+    });
+
+    // 2. React to dynamic updates
+    const handleSynonymsUpdate = (e: any) => {
+      if (e?.detail) setSynonymsCache(e.detail);
+      else setSynonymsCache(getSearchSynonymsCache());
+    };
+
+    window.addEventListener("sopaloka:synonyms_updated", handleSynonymsUpdate as EventListener);
+    return () => {
+      window.removeEventListener("sopaloka:synonyms_updated", handleSynonymsUpdate as EventListener);
+    };
+  }, []);
 
   // Sync external search query (from HeaderNav)
   useEffect(() => {
@@ -150,11 +173,10 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
     if (q) {
       const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
       
-      // Ambil sinonim dari cache untuk setiap kata
-      const cache = getSearchSynonymsCache();
+      // Ambil sinonim dari state reaktif untuk setiap kata
       const expandedWordGroups = words.map(word => {
-        const syns = cache[word] || [];
-        return [word, ...syns]; // Array kata beserta semua sinonimnya
+        const syns = synonymsCache[word] || [];
+        return Array.from(new Set([word, ...syns])); // Array kata beserta semua sinonimnya tanpa duplikasi
       });
       
       // Pencarian multi-kata (Intersection): Semua grup kata harus cocok
@@ -203,7 +225,7 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
          }
          return item;
       });
-  }, [domainListings, filterState, effectiveCategory]);
+  }, [domainListings, filterState, effectiveCategory, synonymsCache]);
 
   const updateSearchQuery = useCallback((keyword: string) => {
     setFilterState((prev) => ({ ...prev, searchQuery: keyword }));

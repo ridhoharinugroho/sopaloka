@@ -16,51 +16,93 @@ let isStorageInitialized = false;
 let isFetchingListingsFromSupabase = false;
 let lastFetchListingsTime = 0;
 
-let _searchSynonymsCache: Record<string, string[]> = {};
+export const DEFAULT_MASTER_SYNONYMS: Array<{ term: string; synonyms: string[] }> = [
+  { term: "laptop", synonyms: ["notebook", "komputer", "pc", "netbook"] },
+  { term: "hp", synonyms: ["handphone", "ponsel", "smartphone", "telepon", "android", "iphone"] },
+  { term: "motor", synonyms: ["sepeda motor", "motorik", "moped"] },
+  { term: "mobil", synonyms: ["kendaraan", "otomotif", "car"] },
+  { term: "tv", synonyms: ["televisi", "television", "tivi"] },
+  { term: "kulkas", synonyms: ["lemari es", "refrigerator", "freezer"] },
+  { term: "ac", synonyms: ["air conditioner", "pendingin", "aircond"] },
+  { term: "headset", synonyms: ["headphone", "earphone", "earbuds", "tws"] },
+  { term: "cas", synonyms: ["charger", "carger", "pengisi daya", "adaptor"] },
+  { term: "sepatu", synonyms: ["sneakers", "alas kaki", "boots"] },
+  { term: "baju", synonyms: ["kaos", "pakaian", "t-shirt", "kemeja"] },
+  { term: "celana", synonyms: ["jeans", "chinos", "bawahan", "trousers"] },
+  { term: "tas", synonyms: ["ransel", "backpack", "waistbag", "tote bag"] },
+  { term: "sepeda", synonyms: ["gowes", "bicycle", "bike", "seli", "sepeda lipat"] },
+  { term: "meja", synonyms: ["meja belajar", "meja kerja", "desk"] },
+  { term: "kursi", synonyms: ["kursi kantor", "kursi belajar", "chair", "sofa"] },
+  { term: "kamera", synonyms: ["camera", "cam", "fotografi", "dslr", "mirrorless"] }
+];
+
+export function buildBidirectionalSynonyms(rows: Array<{ term: string; synonyms: string[] }>): Record<string, string[]> {
+  const newCache: Record<string, Set<string>> = {};
+
+  rows.forEach((row) => {
+    if (!row.term || !Array.isArray(row.synonyms)) return;
+    const term = row.term.toLowerCase().trim();
+    if (!term) return;
+    if (!newCache[term]) newCache[term] = new Set();
+
+    row.synonyms.forEach((syn: string) => {
+      if (typeof syn !== "string") return;
+      const s = syn.toLowerCase().trim();
+      if (!s || s === term) return;
+
+      // 1. term -> syn
+      newCache[term].add(s);
+
+      // 2. syn -> term (Sifat Bolak-Balik Otomatis)
+      if (!newCache[s]) newCache[s] = new Set();
+      newCache[s].add(term);
+
+      // 3. Cross-link sesama sinonim dalam grup
+      row.synonyms.forEach((otherSyn: string) => {
+        if (typeof otherSyn !== "string") return;
+        const os = otherSyn.toLowerCase().trim();
+        if (os && os !== s) newCache[s].add(os);
+      });
+    });
+  });
+
+  const finalCache: Record<string, string[]> = {};
+  for (const key in newCache) {
+    finalCache[key] = Array.from(newCache[key]);
+  }
+  return finalCache;
+}
+
+let _searchSynonymsCache: Record<string, string[]> = buildBidirectionalSynonyms(DEFAULT_MASTER_SYNONYMS);
 
 export function getSearchSynonymsCache(): Record<string, string[]> {
   return _searchSynonymsCache;
 }
 
-export async function fetchSynonymsFromSupabase() {
-  if (!supabase) return;
+export async function fetchSynonymsFromSupabase(): Promise<Record<string, string[]>> {
+  if (!supabase) return _searchSynonymsCache;
   try {
     const { data, error } = await supabase.from("search_synonyms").select("term, synonyms");
-    if (!error && data) {
-      const newCache: Record<string, Set<string>> = {};
-      
-      data.forEach((row: any) => {
-        const term = row.term.toLowerCase();
-        if (!newCache[term]) newCache[term] = new Set();
-        
-        row.synonyms.forEach((syn: string) => {
-          const s = syn.toLowerCase();
-          // term -> synonym
-          newCache[term].add(s);
-          
-          // synonym -> term (Sifat Bolak-Balik Otomatis)
-          if (!newCache[s]) newCache[s] = new Set();
-          newCache[s].add(term);
-          
-          // Cross-link sesama sinonim
-          row.synonyms.forEach((otherSyn: string) => {
-            const os = otherSyn.toLowerCase();
-            if (s !== os) newCache[s].add(os);
-          });
-        });
-      });
-      
-      // Konversi Set kembali menjadi Array
-      const finalCache: Record<string, string[]> = {};
-      for (const key in newCache) {
-        finalCache[key] = Array.from(newCache[key]);
-      }
-      
+    if (!error && Array.isArray(data) && data.length > 0) {
+      // Gabungkan kamus default dengan kamus Supabase
+      const combinedRows = [...DEFAULT_MASTER_SYNONYMS, ...data];
+      const finalCache = buildBidirectionalSynonyms(combinedRows);
       _searchSynonymsCache = finalCache;
+
+      // Broadcast update ke seluruh komponen React
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("sopaloka:synonyms_updated", { detail: finalCache }));
+      }
     }
   } catch (err) {
-    console.error("Gagal mengambil kamus sinonim:", err);
+    console.error("Gagal mengambil kamus sinonim dari Supabase:", err);
   }
+  return _searchSynonymsCache;
+}
+
+// Inisialisasi otomatis jika dijalankan di browser
+if (typeof window !== "undefined") {
+  fetchSynonymsFromSupabase().catch(() => {});
 }
 
 export async function recordSearchTelemetry(searchQuery: string, listingId: string) {
