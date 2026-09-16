@@ -118,6 +118,9 @@ export default function HomePage() {
           closeAllModals();
           setIsTraktirKopiModalOpen(true);
         }}
+        onSearchSubmit={(query) => {
+          window.dispatchEvent(new CustomEvent("sopaloka:search_submitted", { detail: query }));
+        }}
         onProfileClick={handleProfileNavClick}
       >
         <HomeFeature

@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import Fuse from "fuse.js";
 import type { ListingModel } from "../../../domain/listing/listing.contract";
 import type { FilterState } from "../../../domain/filter/filter.contract";
 import { mapListingDtoToDomain } from "../../../domain/listing/listing.mapper";
@@ -57,6 +58,23 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
   // Effective category considers prop priority over internal state
   const effectiveCategory = category !== undefined ? category : filterState.category;
 
+  // Sync external search query (from HeaderNav)
+  useEffect(() => {
+    const handleSearchEvent = (e: CustomEvent<string>) => {
+      setFilterState((prev) => ({
+        ...prev,
+        searchQuery: e.detail,
+      }));
+    };
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    window.addEventListener("sopaloka:search_submitted", handleSearchEvent as EventListener);
+    return () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      window.removeEventListener("sopaloka:search_submitted", handleSearchEvent as EventListener);
+    };
+  }, []);
+
   // Normalize input listings into canonical ListingModel domain models
   const domainListings = useMemo(() => {
     return initialListings.map((item) =>
@@ -66,7 +84,7 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
 
   // Pure filtering logic
   const filteredListings = useMemo(() => {
-    const q = filterState.searchQuery.trim().toLowerCase();
+    const q = filterState.searchQuery.trim(); // Fuse doesn't need toLowerCase()
     const cat = effectiveCategory;
     const regId = filterState.regionId;
     const distName = filterState.district;
@@ -79,16 +97,8 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
     const isBuOnly = filterState.isBu;
     const sort = filterState.sortBy;
 
-    return domainListings
-      .filter((listing) => {
-        // 1. Keyword search
-        if (q) {
-          const matchTitle = listing.title.toLowerCase().includes(q);
-          const matchDesc = listing.description.toLowerCase().includes(q);
-          const matchCat = listing.category.toLowerCase().includes(q);
-          if (!matchTitle && !matchDesc && !matchCat) return false;
-        }
-
+    // 1. Apply hard filters first (Category, Location, Price, Condition)
+    let results = domainListings.filter((listing) => {
         // 2. Category filter
         if (cat && cat !== "all" && listing.category.toLowerCase() !== cat.toLowerCase()) {
           return false;
@@ -134,8 +144,20 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
         if (isBuOnly && !listing.isBu) return false;
 
         return true;
-      })
-      .sort((a, b) => {
+      });
+
+    // 2. Apply Fuzzy Search if query exists
+    if (q) {
+      const fuse = new Fuse(results, {
+        keys: ["title", "description", "category"],
+        threshold: 0.3, // Typo tolerance (0.0 = strict, 1.0 = loose)
+        ignoreLocation: true,
+      });
+      results = fuse.search(q).map((res) => res.item);
+    }
+
+    // 3. Sort results
+    return results.sort((a, b) => {
         if (filterState.isNearest && filterState.nearestDistances) {
           const nm = filterState.nearestDistances;
           const distA = resolveItemDistance(a.districtCode, a.district, nm) ?? 999999;
