@@ -85,10 +85,16 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
     }
   };
 
+  const allSuggestions = Array.from(
+    new Set([...suggestions, ...DEFAULT_POPULAR_SUGGESTIONS])
+  );
+
   const filteredSuggestions = searchQuery.trim()
-    ? suggestions.filter((item) =>
-        item.toLowerCase().includes(searchQuery.toLowerCase().trim())
-      ).slice(0, 6)
+    ? allSuggestions
+        .filter((item) =>
+          item.toLowerCase().includes(searchQuery.toLowerCase().trim())
+        )
+        .slice(0, 6)
     : [];
 
   const showDropdown = isFocused && filteredSuggestions.length > 0;
@@ -99,7 +105,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
       id="sticky-top-app-wrapper"
       className={`sticky-top-app-bar sticky top-0 z-30 w-full bg-[#ffffff] shadow-xs min-h-[88px] md:min-h-[64px] flex flex-col justify-center border-b border-rose-100/60 ${className}`.trim()}
     >
-      <header className="w-full max-w-full overflow-hidden">
+      <header className="w-full max-w-full overflow-visible">
         <div className="max-w-7xl mx-auto px-3.5 sm:px-4 lg:px-6">
           {/* Row 1: Brand Logo, Desktop Search, & Action Buttons */}
           <div className="flex items-center justify-between h-12 sm:h-16 gap-2 sm:gap-4 pt-1.5 pb-0.5 sm:py-1">

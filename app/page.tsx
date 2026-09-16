@@ -77,10 +77,12 @@ export default function HomePage() {
   };
 
   const initialListings = getPublicListings().map((item: any) => mapListingDtoToDomain(item));
+  const listingSuggestions = Array.from(new Set(initialListings.map((item: any) => item.title)));
 
   return (
     <>
       <AppShell
+        suggestions={listingSuggestions}
         activeTab={activeTab}
         onTabChange={(tab) => {
           if (tab === "reviews") {

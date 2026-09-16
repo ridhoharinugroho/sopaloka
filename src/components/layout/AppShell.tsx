@@ -18,6 +18,7 @@ export interface AppShellProps {
   onProfileClick?: () => void;
   onTraktirKopiClick?: () => void;
   onTabChange?: (tab: "home" | "favorites" | "filters" | "reviews" | "toko-saya" | "profile") => void;
+  suggestions?: string[];
 }
 
 export const AppShell: React.FC<AppShellProps> = ({
@@ -35,6 +36,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   onProfileClick,
   onTraktirKopiClick,
   onTabChange,
+  suggestions,
 }) => {
   return (
     <div className={`min-h-screen flex flex-col bg-[#ffffff] text-slate-900 pb-24 md:pb-24 font-sans ${className}`.trim()}>
@@ -48,6 +50,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           onFilterClick={onFilterClick}
           onCreateListingClick={onCreateListingClick}
           onSearchSubmit={onSearchSubmit}
+          suggestions={suggestions}
         />
       )}
       
