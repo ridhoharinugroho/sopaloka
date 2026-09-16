@@ -3,7 +3,7 @@ import type { ListingModel } from "../../../domain/listing/listing.contract";
 import { ListingGallery } from "./ListingGallery";
 import { ListingMetadata } from "./ListingMetadata";
 import { ListingActions } from "./ListingActions";
-import { useModalHistory } from "../../../../hooks/useModalHistory";
+import { useModalHistory } from "../../../hooks/useModalHistory";
 
 export interface ListingDetailProps {
   listing: ListingModel | null;

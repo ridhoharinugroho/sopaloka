@@ -1,14 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export function useModalHistory(isOpen: boolean, onClose: () => void, modalId: string = "modal") {
+  const pushedRef = useRef(false);
+
   useEffect(() => {
     if (!isOpen) return;
 
     // Push a dummy state to history when modal opens
     window.history.pushState({ modal: modalId }, "");
+    pushedRef.current = true;
 
-    const handlePopState = (event: PopStateEvent) => {
-      // If user pressed back, close the modal
+    const handlePopState = () => {
+      // Browser already popped history entry via hardware back button
+      pushedRef.current = false;
       onClose();
     };
 
@@ -16,10 +20,11 @@ export function useModalHistory(isOpen: boolean, onClose: () => void, modalId: s
 
     return () => {
       window.removeEventListener("popstate", handlePopState);
-      
-      // Cleanup: if modal closes programmatically (e.g. user clicked X), 
-      // we should pop the dummy state to keep history clean
-      if (window.history.state?.modal === modalId) {
+
+      // Cleanup: if modal closes programmatically (e.g. user clicked X or background),
+      // pop dummy state. If closed via Back button, pushedRef.current is already false.
+      if (pushedRef.current) {
+        pushedRef.current = false;
         window.history.back();
       }
     };

@@ -1,9 +1,9 @@
 /**
- * SOPALOKA — Service Worker Engine v20260917_v217
+ * SOPALOKA — Service Worker Engine v20260917_v218
  * Next.js App Router Compatible Service Worker
  */
 
-const CACHE_NAME = "sopaloka-pwa-v20260917_v217";
+const CACHE_NAME = "sopaloka-pwa-v20260917_v218";
 const PRECACHE_ASSETS = [
   "/",
   "/admin",
