@@ -3,10 +3,10 @@
 
 /* Dynamic Typography Classes */
 body.font-sans, .font-sans {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
 }
 
-body.font-poppins, .font-poppins {
+body.font-poppins, .font-poppins, .font-heading {
   font-family: 'Poppins', sans-serif !important;
 }
 

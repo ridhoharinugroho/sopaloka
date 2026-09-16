@@ -42,17 +42,17 @@ export const TokoEtalase: React.FC<TokoEtalaseProps> = ({
       {/* Dark Dashboard Etalase Control Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/90 p-4 rounded-3xl border border-slate-800 shadow-2xl backdrop-blur-md">
         <div>
-          <h2 className="font-extrabold text-sm sm:text-base text-white uppercase tracking-wider flex items-center gap-2">
+          <h2 className="font-heading font-bold text-base sm:text-lg text-white uppercase tracking-wider flex items-center gap-2">
             <Package className="w-5 h-5 text-rose-400" />
             <span>Daftar Etalase Barang Jualan</span>
           </h2>
-          <p className="text-xs text-slate-400 font-medium">
+          <p className="text-sm text-slate-400 font-medium">
             Ubah status barang, sunting harga/deskripsi, atau kelola iklan toko kamu
           </p>
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex items-center gap-1.5 bg-slate-950/80 border border-slate-800 p-1 rounded-2xl text-xs font-bold self-start sm:self-auto overflow-x-auto max-w-full">
+        <div className="flex items-center gap-1.5 bg-slate-950/80 border border-slate-800 p-1 rounded-2xl text-sm font-semibold self-start sm:self-auto overflow-x-auto max-w-full">
           {tabs.map((tab) => {
             const isActive =
               statusFilter === tab.id ||
@@ -84,10 +84,10 @@ export const TokoEtalase: React.FC<TokoEtalaseProps> = ({
             <div className="flex flex-col items-center justify-center text-center space-y-4 bg-slate-50/50 p-6 rounded-2xl mx-auto max-w-md border border-slate-200/60 shadow-2xs">
               <PackageOpen className="w-16 h-16 text-slate-300 mx-auto mb-2" />
               <div>
-                <p className="text-base font-bold text-slate-800 mb-2">
+                <p className="font-heading text-lg font-bold text-slate-800 mb-2">
                   Tidak ada barang jualan pada etalase ini
                 </p>
-                <p className="text-xs text-slate-500 leading-relaxed">
+                <p className="text-sm text-slate-500 leading-relaxed">
                   Gunakan tombol Pasang Iklan di atas untuk menambah barang jualan ke etalase kamu.
                 </p>
               </div>
@@ -124,7 +124,7 @@ export const TokoEtalase: React.FC<TokoEtalaseProps> = ({
                   <div className="space-y-1 min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span
-                        className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+                        className={`text-xs font-semibold px-2 py-0.5 rounded-md ${
                           isSold
                             ? "bg-rose-100 text-rose-800 border border-rose-200"
                             : isBooked
@@ -135,20 +135,20 @@ export const TokoEtalase: React.FC<TokoEtalaseProps> = ({
                         {isSold ? "🔴 Terjual" : isBooked ? "🟡 Booked" : "🟢 Tersedia"}
                       </span>
                       {item.isBu && (
-                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-rose-600 text-white">
+                        <span className="text-xs font-semibold px-1.5 py-0.5 rounded-md bg-rose-600 text-white">
                           BU
                         </span>
                       )}
-                      <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-0.5">
+                      <span className="text-xs text-slate-500 font-medium flex items-center gap-0.5">
                         <Eye className="w-3 h-3" /> {item.views || 0}x dilihat
                       </span>
                     </div>
 
-                    <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">
+                    <h3 className="font-heading text-base sm:text-lg font-semibold text-slate-900 truncate">
                       {item.title}
                     </h3>
 
-                    <p className="text-sm font-black text-rose-900">
+                    <p className="font-heading text-base font-bold text-rose-800">
                       {formattedPrice}
                     </p>
                   </div>
@@ -159,7 +159,7 @@ export const TokoEtalase: React.FC<TokoEtalaseProps> = ({
                   <button
                     type="button"
                     onClick={() => onEdit(item)}
-                    className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                    className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-sm font-medium flex items-center gap-1 cursor-pointer transition-colors"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                     <span>Edit</span>
@@ -169,7 +169,7 @@ export const TokoEtalase: React.FC<TokoEtalaseProps> = ({
                     <button
                       type="button"
                       onClick={() => onStatusChange(item.id, "sold")}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                      className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-sm font-medium flex items-center gap-1 cursor-pointer transition-colors"
                     >
                       <CheckCircle className="w-3.5 h-3.5" />
                       <span>Tandai Terjual</span>
@@ -178,7 +178,7 @@ export const TokoEtalase: React.FC<TokoEtalaseProps> = ({
                     <button
                       type="button"
                       onClick={() => onStatusChange(item.id, "active")}
-                      className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                      className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium flex items-center gap-1 cursor-pointer transition-colors"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       <span>Aktifkan</span>

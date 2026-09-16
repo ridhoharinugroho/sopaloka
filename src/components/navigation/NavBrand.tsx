@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 export interface NavBrandProps {
   title?: string;
@@ -16,11 +17,14 @@ export const NavBrand: React.FC<NavBrandProps> = ({
   onLogoClick,
 }) => {
   return (
-    <a
+    <Link
       href={href}
       onClick={(e) => {
-        if (onLogoClick) {
+        if (window.location.pathname === "/") {
           e.preventDefault();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        if (onLogoClick) {
           onLogoClick();
         }
       }}
@@ -45,19 +49,19 @@ export const NavBrand: React.FC<NavBrandProps> = ({
         <div className="flex items-center gap-1 sm:gap-1.5 leading-none">
           <span
             data-text-key="brand_name"
-            className="font-black text-base sm:text-xl tracking-tight text-rose-950 truncate cursor-pointer"
+            className="font-heading font-bold text-lg sm:text-2xl tracking-tight text-rose-950 truncate cursor-pointer"
           >
             {title}
           </span>
         </div>
         <span
           data-text-key="brand_subtagline"
-          className="text-[9.5px] sm:text-[11px] text-rose-700 font-bold tracking-tight mt-0.5 leading-tight truncate cursor-pointer"
+          className="font-heading text-[10px] sm:text-xs text-rose-700 font-semibold tracking-tight mt-0.5 leading-tight truncate cursor-pointer"
         >
           {subtitle}
         </span>
       </div>
-    </a>
+    </Link>
   );
 };
 

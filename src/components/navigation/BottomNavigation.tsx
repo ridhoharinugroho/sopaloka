@@ -44,16 +44,22 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
         {/* 1. Home */}
         <Link
           href="/"
-          onClick={() => onTabChange?.("home")}
+          onClick={(e) => {
+            if (pathname === "/") {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+            onTabChange?.("home");
+          }}
           id="nav-btn-home"
           className={`flex flex-col items-center gap-0.5 py-1 px-3 ${
             isHome
-              ? "text-rose-900 font-black"
-              : "text-slate-600 hover:text-rose-900 font-bold"
-          } text-[10px] sm:text-xs cursor-pointer hover:scale-105 transition-all`}
+              ? "text-rose-900 font-bold"
+              : "text-slate-600 hover:text-rose-900 font-semibold"
+          } text-[11px] sm:text-xs cursor-pointer hover:scale-105 transition-all`}
         >
           <Home className={`w-5 h-5 pointer-events-none ${isHome ? "text-rose-900 stroke-[2.2]" : "text-slate-600 stroke-[1.8]"}`} />
-          <span className="pointer-events-none">Home</span>
+          <span className="pointer-events-none">Beranda</span>
         </Link>
 
         {/* 2. Filter */}
