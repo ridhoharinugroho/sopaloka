@@ -16,6 +16,24 @@ let isStorageInitialized = false;
 let isFetchingListingsFromSupabase = false;
 let lastFetchListingsTime = 0;
 
+export let searchSynonymsCache: Record<string, string[]> = {};
+
+export async function fetchSynonymsFromSupabase() {
+  if (!supabase) return;
+  try {
+    const { data, error } = await supabase.from("search_synonyms").select("term, synonyms");
+    if (!error && data) {
+      const newCache: Record<string, string[]> = {};
+      data.forEach(row => {
+        newCache[row.term.toLowerCase()] = row.synonyms;
+      });
+      searchSynonymsCache = newCache;
+    }
+  } catch (err) {
+    console.error("Gagal mengambil kamus sinonim:", err);
+  }
+}
+
 export async function deleteAvatarFile(avatarUrlOrPath?: string | null): Promise<boolean> {
   if (!avatarUrlOrPath || typeof avatarUrlOrPath !== "string") return true;
   const rawUrl = avatarUrlOrPath.trim();
@@ -225,6 +243,10 @@ export async function fetchPublicListingsFromSupabase(force = false): Promise<Li
         errorMessage: null,
         lastFetchSuccess: true,
       };
+      // Ambil sinonim di background (fire and forget)
+      if (Object.keys(searchSynonymsCache).length === 0) {
+        fetchSynonymsFromSupabase();
+      }
       return processAndBroadcastSupabaseListings(data);
     }
   } catch (err: any) {

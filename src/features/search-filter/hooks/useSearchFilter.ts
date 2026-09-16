@@ -6,7 +6,7 @@ import { mapListingDtoToDomain } from "../../../domain/listing/listing.mapper";
 import { mapFilterDtoToDomain } from "../../../domain/filter/filter.mapper";
 import type { SupabaseListingRowDTO } from "../../../domain/listing/listing.dto";
 
-import { cleanLocationName } from "../../../services/listingService";
+import { cleanLocationName, searchSynonymsCache } from "../../../services/listingService";
 
 export interface UseSearchFilterProps {
   initialListings?: SupabaseListingRowDTO[] | ListingModel[];
@@ -148,17 +148,36 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
 
     // 2. Apply Fuzzy Search if query exists
     if (q) {
-      const words = q.trim().split(/\s+/).filter(Boolean);
+      const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
       
-      // Pencarian multi-kata: jalankan Fuse untuk setiap kata agar bisa cocok di mana saja (intersection)
-      for (const word of words) {
-        const fuse = new Fuse(results, {
-          keys: ["title", "description", "category"],
-          threshold: 0.3, // Typo tolerance
-          ignoreLocation: true,
-          distance: 1000,
-        });
-        results = fuse.search(word).map((res) => res.item);
+      // Ambil sinonim dari cache untuk setiap kata
+      const expandedWordGroups = words.map(word => {
+        const syns = searchSynonymsCache[word] || [];
+        return [word, ...syns]; // Array kata beserta semua sinonimnya
+      });
+      
+      // Pencarian multi-kata (Intersection): Semua grup kata harus cocok
+      for (const wordGroup of expandedWordGroups) {
+        
+        // Dalam satu grup kata (Misal: ['laptop', 'notebook']), gunakan Union (OR)
+        const groupMatches = new Map();
+        
+        for (const option of wordGroup) {
+          const fuse = new Fuse(results, {
+            keys: ["title", "description", "category"],
+            threshold: 0.3, // Typo tolerance
+            ignoreLocation: true,
+            distance: 1000,
+          });
+          
+          const optionResults = fuse.search(option);
+          for (const res of optionResults) {
+            groupMatches.set(res.item.id, res.item); // Simpan unique berdasarkan ID
+          }
+        }
+        
+        // Perbarui `results` hanya dengan barang yang lulus pengecekan grup kata ini
+        results = Array.from(groupMatches.values()) as typeof domainListings;
       }
     }
 
