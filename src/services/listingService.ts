@@ -23,14 +23,57 @@ export async function fetchSynonymsFromSupabase() {
   try {
     const { data, error } = await supabase.from("search_synonyms").select("term, synonyms");
     if (!error && data) {
-      const newCache: Record<string, string[]> = {};
-      data.forEach(row => {
-        newCache[row.term.toLowerCase()] = row.synonyms;
+      const newCache: Record<string, Set<string>> = {};
+      
+      data.forEach((row: any) => {
+        const term = row.term.toLowerCase();
+        if (!newCache[term]) newCache[term] = new Set();
+        
+        row.synonyms.forEach((syn: string) => {
+          const s = syn.toLowerCase();
+          // term -> synonym
+          newCache[term].add(s);
+          
+          // synonym -> term (Sifat Bolak-Balik Otomatis)
+          if (!newCache[s]) newCache[s] = new Set();
+          newCache[s].add(term);
+          
+          // Cross-link sesama sinonim
+          row.synonyms.forEach((otherSyn: string) => {
+            const os = otherSyn.toLowerCase();
+            if (s !== os) newCache[s].add(os);
+          });
+        });
       });
-      searchSynonymsCache = newCache;
+      
+      // Konversi Set kembali menjadi Array
+      const finalCache: Record<string, string[]> = {};
+      for (const key in newCache) {
+        finalCache[key] = Array.from(newCache[key]);
+      }
+      
+      searchSynonymsCache = finalCache;
     }
   } catch (err) {
     console.error("Gagal mengambil kamus sinonim:", err);
+  }
+}
+
+export async function recordSearchTelemetry(searchQuery: string, listingId: string) {
+  if (!supabase || !searchQuery || !listingId) return;
+  const q = searchQuery.trim();
+  if (q.length < 3) return; // Abaikan pencarian terlalu pendek
+  
+  try {
+    // Fire and forget, tidak perlu await agar UI tidak nge-lag
+    supabase.from("search_telemetry").insert({
+      search_query: q,
+      clicked_listing_id: listingId
+    }).then(({ error }) => {
+      if (error) console.error("Telemetry error:", error);
+    });
+  } catch (err) {
+    // silent fail
   }
 }
 

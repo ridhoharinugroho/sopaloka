@@ -289,7 +289,16 @@ export const SearchFilterFeature: React.FC<SearchFilterFeatureProps> = ({
       {/* ── Listing Grid ────────────────────────────────────────────── */}
       <ListingGrid
         listings={filteredListings}
-        onListingClick={onListingClick}
+        onListingClick={(listing) => {
+          // [AI Telemetry Tracker] Jika user sedang mencari sesuatu lalu mengklik barang, laporkan ke DB
+          if (filterState.searchQuery && filterState.searchQuery.trim().length >= 3) {
+            import("../../services/listingService").then(({ recordSearchTelemetry }) => {
+              recordSearchTelemetry(filterState.searchQuery, listing.id);
+            });
+          }
+          // Panggil fungsi klik bawaan dari props
+          onListingClick?.(listing);
+        }}
       />
     </div>
   );
