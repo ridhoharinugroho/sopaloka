@@ -101,11 +101,27 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
         return true;
       })
       .sort((a, b) => {
-        if (sort === "price_asc") return a.price - b.price;
-        if (sort === "price_desc") return b.price - a.price;
-        if (sort === "popular") return b.views - a.views;
+        if (filterState.isNearest && filterState.nearestDistances) {
+          const distCodeA = a.districtCode ? a.districtCode.replace(/\./g, "") : null;
+          const distCodeB = b.districtCode ? b.districtCode.replace(/\./g, "") : null;
+          const distA: number = (distCodeA && filterState.nearestDistances[distCodeA] != null) ? filterState.nearestDistances[distCodeA]! : 999999;
+          const distB: number = (distCodeB && filterState.nearestDistances[distCodeB] != null) ? filterState.nearestDistances[distCodeB]! : 999999;
+          if (distA !== distB) return distA - distB;
+        }
+        if (sort === "price_asc" || sort === "price_low") return a.price - b.price;
+        if (sort === "price_desc" || sort === "price_high") return b.price - a.price;
+        if (sort === "popular" || sort === "views") return (b.views || 0) - (a.views || 0);
         // Default: newest
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      })
+      .map((item) => {
+         if (filterState.isNearest && filterState.nearestDistances) {
+             const distCode = item.districtCode ? item.districtCode.replace(/\./g, "") : null;
+             if (distCode && filterState.nearestDistances[distCode] !== undefined) {
+                 return { ...item, distanceKm: filterState.nearestDistances[distCode] };
+             }
+         }
+         return item;
       });
   }, [domainListings, filterState, effectiveCategory]);
 

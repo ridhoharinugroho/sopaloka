@@ -8,6 +8,7 @@ export interface SortOption {
 
 export const SORT_OPTIONS: SortOption[] = [
   { id: "newest", label: "Terbaru" },
+  { id: "nearest", label: "Terdekat 📍" },
   { id: "price_low", label: "Termurah" },
   { id: "price_high", label: "Termahal" },
   { id: "views", label: "Banyak dilihat" },

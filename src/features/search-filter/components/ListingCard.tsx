@@ -98,8 +98,14 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           </button>
 
           {/* Bottom Left: Location Pill */}
-          <div className="absolute bottom-2 left-2 z-10">
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold border shadow-xs bg-white/95 text-slate-800 border-slate-200 backdrop-blur-xs flex items-center gap-1">
+          <div className="absolute bottom-2 left-2 z-10 flex flex-col gap-1">
+            {listing.distanceKm !== undefined && (
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold border shadow-xs bg-indigo-50/95 text-indigo-700 border-indigo-200 backdrop-blur-xs flex items-center gap-1 w-fit">
+                <MapPin className="w-3 h-3 flex-shrink-0" />
+                <span>± {listing.distanceKm < 1 ? "< 1" : Math.round(listing.distanceKm)} KM dari Anda</span>
+              </span>
+            )}
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold border shadow-xs bg-white/95 text-slate-800 border-slate-200 backdrop-blur-xs flex items-center gap-1 w-fit">
               <MapPin className="w-3 h-3 text-rose-800 flex-shrink-0" />
               <span className="truncate max-w-[120px] sm:max-w-[140px]">{locationText}</span>
             </span>

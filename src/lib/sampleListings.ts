@@ -48,6 +48,7 @@ export interface ListingItem {
   payment_status?: string;
   payment_amount?: number;
   views?: number;
+  distanceKm?: number;
   createdAt: string;
   updatedAt?: string;
 }
@@ -63,6 +64,7 @@ export const SAMPLE_LISTINGS: ListingItem[] = [
     paymentMethod: "cod",
     regionId: "3310",
     district: "Delanggu",
+    districtCode: "3310180",
     codPoint: "COD SPBU Delanggu / Stasiun Delanggu Klaten",
     description:
       "Honda Beat ESP 2018 warna merah putih plat AD Klaten. Surat komplit STNK, BPKB, Faktur ready di rumah. Pajak tertib panjang sampai November 2026. Mesin halus kering no rembes, ban depan belakang tebal tubeless. Langsung pakai no PR!",
@@ -95,6 +97,7 @@ export const SAMPLE_LISTINGS: ListingItem[] = [
     paymentMethod: "cod",
     regionId: "3311",
     district: "Kartasura",
+    districtCode: "3311120",
     codPoint: "COD Kampus UMS / Goro Assalam Kartasura",
     description:
       "iPhone 11 128 GB Region PA/A (iBox Resmi Indonesia), sinyal semua operator aman seumur hidup. Face ID ON, TrueTone ON, 3uTools hijau semua 98%. Kelengkapan dusbook original, kabel c-to-lightning, bonus 3 case premium. COD dicek sepuasnya di kafe sekitar UMS.",
@@ -127,6 +130,7 @@ export const SAMPLE_LISTINGS: ListingItem[] = [
     paymentMethod: "cod",
     regionId: "3313",
     district: "Jaten",
+    districtCode: "3313110",
     codPoint: "COD Rumah Palur / Sekitar UNS Solo - Jaten",
     description:
       "Barang rumahan mesin cuci Sharp Aquamagic 2 tabung kapasitas 8 kg. Tabung cuci & pengering normal kencang semua. Selang pembuangan & kabel utuh. Dijual karena ganti yang 1 tabung otomatis. Monggo diangkut bawa pick-up / mobil sendiri ya lur.",
@@ -156,6 +160,7 @@ export const SAMPLE_LISTINGS: ListingItem[] = [
     paymentMethod: "cod",
     regionId: "3314",
     district: "Gemolong",
+    districtCode: "3314130",
     codPoint: "COD Pasar Gemolong Sragen",
     description:
       "Meja belajar anak sekolah bahan kayu jati asli + rak buku susun. Rangka kokoh, laci normal, tidak goyang. Cocok untuk belajar anak SD/SMP/SMA maupun mahasiswa. Lokasi Gemolong Sragen.",

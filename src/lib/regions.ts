@@ -29,7 +29,7 @@ export interface FormattedDistrict {
   name: string;
 }
 
-import regionsData from "../data/regions.json";
+import regionsData from "../data/regions.json" with { type: "json" };
 
 export const PROVINCES: Province[] = regionsData.provinces;
 export const REGIONS: Region[] = regionsData.regencies;
@@ -109,16 +109,17 @@ export function getDistrictsByRegency(regencyCode?: string | null): FormattedDis
   });
 }
 
-import { supabase } from "./supabase";
-
 export async function getDistrictsFromDB(regencyCode?: string | null): Promise<FormattedDistrict[]> {
   if (!regencyCode) return [];
   
+  const cleanRegCode = String(regencyCode).replace(/\./g, "");
+  
   try {
+    const { supabase } = await import("./supabase");
     const { data, error } = await supabase
       .from("districts")
       .select("id, name")
-      .eq("regency_code", regencyCode)
+      .eq("regency_code", cleanRegCode)
       .order("name", { ascending: true });
       
     if (error) {

@@ -241,6 +241,28 @@ export async function fetchPublicListingsFromSupabase(force = false): Promise<Li
   return getPublicListings();
 }
 
+export async function fetchNearestDistances(lat: number, lon: number): Promise<Record<string, number>> {
+  if (!supabase) return {};
+  try {
+    const { data, error } = await supabase.rpc("search_nearest_districts", {
+      user_lat: lat,
+      user_lon: lon,
+      max_dist_km: 100,
+    });
+    if (error || !data) return {};
+    const map: Record<string, number> = {};
+    for (const row of data) {
+      if (row.district_code) {
+        map[row.district_code] = row.distance_km;
+      }
+    }
+    return map;
+  } catch (err) {
+    console.error("fetchNearestDistances error:", err);
+    return {};
+  }
+}
+
 export function getMyListings(userOrId?: string | any | null): ListingItem[] {
   if (!userOrId) return [];
   const targetId = typeof userOrId === "string" ? userOrId.trim() : (userOrId.id || "").trim();

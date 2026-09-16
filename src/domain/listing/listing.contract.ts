@@ -35,6 +35,7 @@ export interface ListingModel {
   buExpiresAt: string | null;
   isQrisVerified: boolean;
   views: number;
+  distanceKm?: number;
   createdAt: string;
   updatedAt: string | null;
 }

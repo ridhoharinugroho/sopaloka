@@ -10,5 +10,7 @@ export interface FilterState {
   maxPrice: number | null;
   condition: string | null;
   isBu: boolean;
-  sortBy: "newest" | "price_asc" | "price_desc" | "popular" | string;
+  sortBy: "newest" | "price_asc" | "price_desc" | "popular" | "nearest" | string;
+  isNearest?: boolean;
+  nearestDistances?: Record<string, number>;
 }

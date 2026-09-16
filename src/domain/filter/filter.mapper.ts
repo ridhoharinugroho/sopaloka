@@ -44,5 +44,7 @@ export function mapFilterDtoToDomain(dto: FilterStateDTO | null | undefined): Fi
     condition: dto.condition || null,
     isBu,
     sortBy,
+    isNearest: false,
+    nearestDistances: {},
   };
 }

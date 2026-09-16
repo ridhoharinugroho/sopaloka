@@ -43,6 +43,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-red-500"
           >
             <option value="newest">Terbaru</option>
+            <option value="nearest">Terdekat 📍</option>
             <option value="price_asc">Harga Terendah</option>
             <option value="price_desc">Harga Tertinggi</option>
             <option value="popular">Paling Dilihat</option>
