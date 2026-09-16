@@ -148,12 +148,18 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
 
     // 2. Apply Fuzzy Search if query exists
     if (q) {
-      const fuse = new Fuse(results, {
-        keys: ["title", "description", "category"],
-        threshold: 0.3, // Typo tolerance (0.0 = strict, 1.0 = loose)
-        ignoreLocation: true,
-      });
-      results = fuse.search(q).map((res) => res.item);
+      const words = q.trim().split(/\s+/).filter(Boolean);
+      
+      // Pencarian multi-kata: jalankan Fuse untuk setiap kata agar bisa cocok di mana saja (intersection)
+      for (const word of words) {
+        const fuse = new Fuse(results, {
+          keys: ["title", "description", "category"],
+          threshold: 0.3, // Typo tolerance
+          ignoreLocation: true,
+          distance: 1000,
+        });
+        results = fuse.search(word).map((res) => res.item);
+      }
     }
 
     // 3. Sort results

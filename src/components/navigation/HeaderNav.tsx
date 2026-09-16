@@ -39,6 +39,11 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSearchSubmit?.(searchQuery);
+    
+    // Menutup keyboard HP setelah submit
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
   };
 
   return (
