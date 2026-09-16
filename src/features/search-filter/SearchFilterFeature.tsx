@@ -277,6 +277,7 @@ export const SearchFilterFeature: React.FC<SearchFilterFeatureProps> = ({
           <SearchBar
             value={filterState.searchQuery}
             onChange={updateSearchQuery}
+            suggestions={Array.from(new Set(filteredListings.map(l => l.title))).slice(0, 5)}
           />
           <FilterBar
             filterState={filterState}

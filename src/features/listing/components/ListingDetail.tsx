@@ -3,6 +3,7 @@ import type { ListingModel } from "../../../domain/listing/listing.contract";
 import { ListingGallery } from "./ListingGallery";
 import { ListingMetadata } from "./ListingMetadata";
 import { ListingActions } from "./ListingActions";
+import { useModalHistory } from "../../../../hooks/useModalHistory";
 
 export interface ListingDetailProps {
   listing: ListingModel | null;
@@ -25,6 +26,8 @@ export const ListingDetail: React.FC<ListingDetailProps> = ({
   onShareClick,
   className = "",
 }) => {
+  useModalHistory(isOpen, onClose, "listing_detail");
+
   if (!isOpen || !listing) return null;
 
   return (
