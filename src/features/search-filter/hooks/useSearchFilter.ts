@@ -6,7 +6,7 @@ import { mapListingDtoToDomain } from "../../../domain/listing/listing.mapper";
 import { mapFilterDtoToDomain } from "../../../domain/filter/filter.mapper";
 import type { SupabaseListingRowDTO } from "../../../domain/listing/listing.dto";
 
-import { cleanLocationName, searchSynonymsCache } from "../../../services/listingService";
+import { cleanLocationName, getSearchSynonymsCache } from "../../../services/listingService";
 
 export interface UseSearchFilterProps {
   initialListings?: SupabaseListingRowDTO[] | ListingModel[];
@@ -151,8 +151,9 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
       const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
       
       // Ambil sinonim dari cache untuk setiap kata
+      const cache = getSearchSynonymsCache();
       const expandedWordGroups = words.map(word => {
-        const syns = searchSynonymsCache[word] || [];
+        const syns = cache[word] || [];
         return [word, ...syns]; // Array kata beserta semua sinonimnya
       });
       

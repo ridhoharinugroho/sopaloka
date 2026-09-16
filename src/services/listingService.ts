@@ -16,7 +16,11 @@ let isStorageInitialized = false;
 let isFetchingListingsFromSupabase = false;
 let lastFetchListingsTime = 0;
 
-export let searchSynonymsCache: Record<string, string[]> = {};
+let _searchSynonymsCache: Record<string, string[]> = {};
+
+export function getSearchSynonymsCache(): Record<string, string[]> {
+  return _searchSynonymsCache;
+}
 
 export async function fetchSynonymsFromSupabase() {
   if (!supabase) return;
@@ -52,7 +56,7 @@ export async function fetchSynonymsFromSupabase() {
         finalCache[key] = Array.from(newCache[key]);
       }
       
-      searchSynonymsCache = finalCache;
+      _searchSynonymsCache = finalCache;
     }
   } catch (err) {
     console.error("Gagal mengambil kamus sinonim:", err);
@@ -287,7 +291,7 @@ export async function fetchPublicListingsFromSupabase(force = false): Promise<Li
         lastFetchSuccess: true,
       };
       // Ambil sinonim di background (fire and forget)
-      if (Object.keys(searchSynonymsCache).length === 0) {
+      if (Object.keys(_searchSynonymsCache).length === 0) {
         fetchSynonymsFromSupabase();
       }
       return processAndBroadcastSupabaseListings(data);
