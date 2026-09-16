@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import { X, SlidersHorizontal, MapPin, Navigation, Tag, Check, RotateCcw } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { X, SlidersHorizontal, MapPin, Navigation, Tag, Check, RotateCcw, ChevronDown, Map, Grid } from "lucide-react";
+import { PROVINCES, getRegenciesByProvince } from "../../../lib/regions";
 
 export interface FilterModalProps {
   isOpen: boolean;
@@ -12,17 +13,6 @@ export interface FilterModalProps {
   className?: string;
 }
 
-const REGION_OPTIONS = [
-  { id: "all", name: "Semua Wilayah Solo Raya" },
-  { id: "solo", name: "Kota Solo (Surakarta)" },
-  { id: "karanganyar", name: "Kab. Karanganyar" },
-  { id: "sukoharjo", name: "Kab. Sukoharjo" },
-  { id: "wonogiri", name: "Kab. Wonogiri" },
-  { id: "sragen", name: "Kab. Sragen" },
-  { id: "boyolali", name: "Kab. Boyolali" },
-  { id: "klaten", name: "Kab. Klaten" },
-];
-
 const CATEGORY_OPTIONS = [
   { id: "all", name: "Semua Kategori" },
   { id: "elektronik", name: "Elektronik & Gadget" },
@@ -30,6 +20,15 @@ const CATEGORY_OPTIONS = [
   { id: "perabot", name: "Perabot & Rumah Tangga" },
   { id: "pakaian", name: "Pakaian & Aksesoris" },
   { id: "kuliner", name: "Makanan & Minuman" },
+  { id: "bayi-anak", name: "Perlengkapan Bayi & Anak" },
+  { id: "pertukangan", name: "Pertukangan / Bahan Bangunan" },
+  { id: "hobi", name: "Hobi, Musik & Olahraga" },
+  { id: "hewan", name: "Hewan & Perlengkapan" },
+  { id: "alat-sekolah", name: "Peralatan Sekolah" },
+  { id: "perawatan-diri", name: "Perawatan Diri" },
+  { id: "properti", name: "Properti" },
+  { id: "jasa", name: "Jasa" },
+  { id: "lainnya", name: "Lain-lain / Aneka Barang" },
 ];
 
 export const FilterModal: React.FC<FilterModalProps> = ({
@@ -40,11 +39,15 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   onApply,
   className = "",
 }) => {
+  const [tempProvince, setTempProvince] = useState("all"); // Default Semua Provinsi
   const [tempRegion, setTempRegion] = useState(initialRegion || "all");
   const [tempCategory, setTempCategory] = useState(initialCategory || "all");
 
+  const regencies = useMemo(() => getRegenciesByProvince(tempProvince), [tempProvince]);
+
   React.useEffect(() => {
     if (isOpen) {
+      setTempProvince("all");
       setTempRegion(initialRegion || "all");
       setTempCategory(initialCategory || "all");
     }
@@ -53,6 +56,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   if (!isOpen) return null;
 
   const handleReset = () => {
+    setTempProvince("all");
     setTempRegion("all");
     setTempCategory("all");
   };
@@ -98,59 +102,86 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
         {/* Modal Content */}
         <div className="p-4 overflow-y-auto space-y-4 flex-1">
-          {/* 1. Filter Wilayah */}
-          <div className="space-y-2">
-            <label className="text-xs font-black text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
-              <MapPin className="w-3.5 h-3.5 text-rose-800" />
-              <span>Wilayah Solo Raya</span>
-            </label>
-            <div className="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto pr-1">
-              {REGION_OPTIONS.map((reg) => {
-                const isSelected = tempRegion.toLowerCase() === reg.id.toLowerCase();
-                return (
-                  <button
-                    key={reg.id}
-                    type="button"
-                    onClick={() => setTempRegion(reg.id)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-left text-xs font-bold transition-all flex items-center justify-between cursor-pointer border ${
-                      isSelected
-                        ? "bg-rose-50 border-rose-600 text-rose-950 font-black shadow-2xs"
-                        : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700"
-                    }`}
-                  >
-                    <span>{reg.name}</span>
-                    {isSelected && <Check className="w-4 h-4 text-rose-700" />}
-                  </button>
-                );
-              })}
+          {/* 1. Filter Provinsi */}
+          <div className="space-y-1.5">
+            <label className="text-[10.5px] font-bold uppercase tracking-wider text-slate-600">Pilih Provinsi</label>
+            <div className="relative w-full h-10 px-3 py-2 bg-slate-50 border border-slate-300 hover:border-rose-900 rounded-xl flex items-center justify-between text-slate-800 transition-colors focus-within:border-rose-900 focus-within:ring-1 focus-within:ring-rose-900">
+              <div className="flex items-center gap-2.5 min-w-0 truncate pointer-events-none">
+                <div className="w-6 h-6 rounded-lg bg-rose-100 text-rose-900 flex items-center justify-center flex-shrink-0">
+                  <Map className="w-3.5 h-3.5" />
+                </div>
+                <span className="truncate font-semibold text-slate-800 text-xs">
+                  {tempProvince === "all" ? "Semua Provinsi" : (PROVINCES.find(p => p.code === tempProvince)?.name || "Pilih Provinsi")}
+                </span>
+              </div>
+              <ChevronDown className="w-4 h-4 text-slate-400 pointer-events-none" />
+              
+              <select 
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-xs"
+                value={tempProvince}
+                onChange={(e) => {
+                  setTempProvince(e.target.value);
+                  setTempRegion("all"); // Reset region when province changes
+                }}
+              >
+                <option value="all">Semua Provinsi</option>
+                {PROVINCES.map(prov => (
+                  <option key={prov.id} value={prov.code}>{prov.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* 2. Filter Kategori */}
-          <div className="space-y-2 pt-2 border-t border-slate-100">
-            <label className="text-xs font-black text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
-              <Tag className="w-3.5 h-3.5 text-rose-800" />
-              <span>Kategori Barang</span>
-            </label>
-            <div className="grid grid-cols-2 gap-1.5">
-              {CATEGORY_OPTIONS.map((cat) => {
-                const isSelected = tempCategory.toLowerCase() === cat.id.toLowerCase();
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setTempCategory(cat.id)}
-                    className={`px-3 py-2 rounded-xl text-left text-[11px] font-bold transition-all flex items-center justify-between cursor-pointer border ${
-                      isSelected
-                        ? "bg-rose-50 border-rose-600 text-rose-950 font-black shadow-2xs"
-                        : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700"
-                    }`}
-                  >
-                    <span className="truncate">{cat.name}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-rose-700 flex-shrink-0" />}
-                  </button>
-                );
-              })}
+          {/* 2. Filter Wilayah (Kabupaten/Kota) */}
+          <div className="space-y-1.5">
+            <label className="text-[10.5px] font-bold uppercase tracking-wider text-slate-600">Kabupaten / Kota</label>
+            <div className="relative w-full h-10 px-3 py-2 bg-slate-50 border border-slate-300 hover:border-rose-900 rounded-xl flex items-center justify-between text-slate-800 transition-colors focus-within:border-rose-900 focus-within:ring-1 focus-within:ring-rose-900">
+              <div className="flex items-center gap-2.5 min-w-0 truncate pointer-events-none">
+                <div className="w-6 h-6 rounded-lg bg-rose-100 text-rose-900 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-3.5 h-3.5" />
+                </div>
+                <span className="truncate font-semibold text-slate-800 text-xs">
+                  {tempRegion === "all" ? "Semua Wilayah" : regencies.find(r => r.id === tempRegion)?.name || "Pilih Wilayah"}
+                </span>
+              </div>
+              <ChevronDown className="w-4 h-4 text-slate-400 pointer-events-none" />
+              
+              <select 
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-xs"
+                value={tempRegion}
+                onChange={(e) => setTempRegion(e.target.value)}
+              >
+                <option value="all">Semua Wilayah</option>
+                {regencies.map(reg => (
+                  <option key={reg.id} value={reg.id}>{reg.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* 3. Filter Kategori */}
+          <div className="space-y-1.5 pt-1">
+            <label className="text-[10.5px] font-bold uppercase tracking-wider text-slate-600">Kategori Barang</label>
+            <div className="relative w-full h-10 px-3 py-2 bg-slate-50 border border-slate-300 hover:border-rose-900 rounded-xl flex items-center justify-between text-slate-800 transition-colors focus-within:border-rose-900 focus-within:ring-1 focus-within:ring-rose-900">
+              <div className="flex items-center gap-2.5 min-w-0 truncate pointer-events-none">
+                <div className="w-6 h-6 rounded-lg bg-rose-100 text-rose-900 flex items-center justify-center flex-shrink-0">
+                  <Grid className="w-3.5 h-3.5" />
+                </div>
+                <span className="truncate font-semibold text-slate-800 text-xs">
+                  {CATEGORY_OPTIONS.find(c => c.id === tempCategory)?.name || "Pilih Kategori"}
+                </span>
+              </div>
+              <ChevronDown className="w-4 h-4 text-slate-400 pointer-events-none" />
+              
+              <select 
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-xs"
+                value={tempCategory}
+                onChange={(e) => setTempCategory(e.target.value)}
+              >
+                {CATEGORY_OPTIONS.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

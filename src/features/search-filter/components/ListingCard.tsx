@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import type { ListingModel } from "../../../domain/listing/listing.contract";
 import { Heart, MapPin, CheckCircle, MessageCircle, Eye, Tag } from "lucide-react";
 import { isFavorite as checkIsFavorite, toggleFavorite } from "../../../services/listingService";
+import { getRegionById } from "../../../lib/regions";
 
 export interface ListingCardProps {
   listing: ListingModel;
@@ -42,11 +43,13 @@ export const ListingCard: React.FC<ListingCardProps> = ({
       ? listing.images[0]
       : "https://via.placeholder.com/400x300?text=SOPALOKA";
 
+  const regionName = getRegionById(listing.regionId)?.shortName || getRegionById(listing.regionId)?.name || "Nasional";
+
   const locationText = listing.village
-    ? `${listing.district || listing.regionId || "Solo"} • ${listing.village}`
+    ? `${listing.district || regionName} • ${listing.village}`
     : listing.district
-    ? `Solo • ${listing.district}`
-    : listing.regionId || "Solo Raya";
+    ? `${regionName} • ${listing.district}`
+    : regionName;
 
   const isNego = listing.negoType !== "pass";
   const sellerName = listing.seller?.name || "Danang";
