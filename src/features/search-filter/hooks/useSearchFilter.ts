@@ -5,9 +5,44 @@ import { mapListingDtoToDomain } from "../../../domain/listing/listing.mapper";
 import { mapFilterDtoToDomain } from "../../../domain/filter/filter.mapper";
 import type { SupabaseListingRowDTO } from "../../../domain/listing/listing.dto";
 
+import { cleanLocationName } from "../../../services/listingService";
+
 export interface UseSearchFilterProps {
   initialListings?: SupabaseListingRowDTO[] | ListingModel[];
   category?: string;
+}
+
+function resolveItemDistance(
+  distCode?: string | null,
+  districtName?: string | null,
+  nearestMap?: Record<string, number> | null
+): number | undefined {
+  if (!nearestMap) return undefined;
+  
+  // 1. Match by districtCode (most accurate)
+  if (distCode) {
+    const cleanCode = distCode.replace(/\./g, "");
+    if (nearestMap[cleanCode] != null) return nearestMap[cleanCode];
+  }
+  
+  if (!districtName) return undefined;
+  
+  const lowerName = districtName.toLowerCase().trim();
+  // 2. Exact name match
+  if (nearestMap[lowerName] != null) return nearestMap[lowerName];
+  
+  // 3. Clean name match (strips kota, kecamatan, etc.)
+  const cleanName = cleanLocationName(districtName);
+  if (cleanName && nearestMap[cleanName] != null) return nearestMap[cleanName];
+  
+  // 4. Substring inclusion fallback
+  for (const [key, val] of Object.entries(nearestMap)) {
+    if (key.length >= 4 && (lowerName.includes(key) || key.includes(lowerName) || (cleanName && (cleanName.includes(key) || key.includes(cleanName))))) {
+      return val;
+    }
+  }
+  
+  return undefined;
 }
 
 export function useSearchFilter({ initialListings = [], category }: UseSearchFilterProps = {}) {
@@ -103,17 +138,8 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
       .sort((a, b) => {
         if (filterState.isNearest && filterState.nearestDistances) {
           const nm = filterState.nearestDistances;
-          // Try by districtCode first, then fall back to district name
-          const distCodeA = a.districtCode ? a.districtCode.replace(/\./g, "") : null;
-          const distCodeB = b.districtCode ? b.districtCode.replace(/\./g, "") : null;
-          const distA: number =
-            (distCodeA && nm[distCodeA] != null) ? nm[distCodeA]!
-            : (a.district && nm[a.district.toLowerCase()] != null) ? nm[a.district.toLowerCase()]!
-            : 999999;
-          const distB: number =
-            (distCodeB && nm[distCodeB] != null) ? nm[distCodeB]!
-            : (b.district && nm[b.district.toLowerCase()] != null) ? nm[b.district.toLowerCase()]!
-            : 999999;
+          const distA = resolveItemDistance(a.districtCode, a.district, nm) ?? 999999;
+          const distB = resolveItemDistance(b.districtCode, b.district, nm) ?? 999999;
           if (distA !== distB) return distA - distB;
         }
         if (sort === "price_asc" || sort === "price_low") return a.price - b.price;
@@ -124,12 +150,7 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
       })
       .map((item) => {
          if (filterState.isNearest && filterState.nearestDistances) {
-             const nm = filterState.nearestDistances;
-             const distCode = item.districtCode ? item.districtCode.replace(/\./g, "") : null;
-             const km =
-               (distCode && nm[distCode] != null) ? nm[distCode]
-               : (item.district && nm[item.district.toLowerCase()] != null) ? nm[item.district.toLowerCase()]
-               : undefined;
+             const km = resolveItemDistance(item.districtCode, item.district, filterState.nearestDistances);
              if (km !== undefined) return { ...item, distanceKm: km };
          }
          return item;

@@ -241,6 +241,15 @@ export async function fetchPublicListingsFromSupabase(force = false): Promise<Li
   return getPublicListings();
 }
 
+export function cleanLocationName(name?: string | null): string {
+  if (!name) return "";
+  return name
+    .toLowerCase()
+    .replace(/\b(kecamatan|kec|kabupaten|kab|kota|kelurahan|kel)\b/gi, "")
+    .replace(/[^a-z0-9]/gi, "")
+    .trim();
+}
+
 export async function fetchNearestDistances(lat: number, lon: number): Promise<Record<string, number>> {
   if (!supabase) return {};
   try {
@@ -259,6 +268,11 @@ export async function fetchNearestDistances(lat: number, lon: number): Promise<R
       // Key by lowercase district name for listings without district_code (majority)
       if (row.district_name) {
         map[row.district_name.toLowerCase()] = row.distance_km;
+        // Key by cleaned name (stripping kota/kec/kab/etc)
+        const clean = cleanLocationName(row.district_name);
+        if (clean && map[clean] === undefined) {
+          map[clean] = row.distance_km;
+        }
       }
     }
     return map;
