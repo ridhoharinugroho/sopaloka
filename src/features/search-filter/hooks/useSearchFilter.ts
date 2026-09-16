@@ -102,10 +102,18 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
       })
       .sort((a, b) => {
         if (filterState.isNearest && filterState.nearestDistances) {
+          const nm = filterState.nearestDistances;
+          // Try by districtCode first, then fall back to district name
           const distCodeA = a.districtCode ? a.districtCode.replace(/\./g, "") : null;
           const distCodeB = b.districtCode ? b.districtCode.replace(/\./g, "") : null;
-          const distA: number = (distCodeA && filterState.nearestDistances[distCodeA] != null) ? filterState.nearestDistances[distCodeA]! : 999999;
-          const distB: number = (distCodeB && filterState.nearestDistances[distCodeB] != null) ? filterState.nearestDistances[distCodeB]! : 999999;
+          const distA: number =
+            (distCodeA && nm[distCodeA] != null) ? nm[distCodeA]!
+            : (a.district && nm[a.district.toLowerCase()] != null) ? nm[a.district.toLowerCase()]!
+            : 999999;
+          const distB: number =
+            (distCodeB && nm[distCodeB] != null) ? nm[distCodeB]!
+            : (b.district && nm[b.district.toLowerCase()] != null) ? nm[b.district.toLowerCase()]!
+            : 999999;
           if (distA !== distB) return distA - distB;
         }
         if (sort === "price_asc" || sort === "price_low") return a.price - b.price;
@@ -116,10 +124,13 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
       })
       .map((item) => {
          if (filterState.isNearest && filterState.nearestDistances) {
+             const nm = filterState.nearestDistances;
              const distCode = item.districtCode ? item.districtCode.replace(/\./g, "") : null;
-             if (distCode && filterState.nearestDistances[distCode] !== undefined) {
-                 return { ...item, distanceKm: filterState.nearestDistances[distCode] };
-             }
+             const km =
+               (distCode && nm[distCode] != null) ? nm[distCode]
+               : (item.district && nm[item.district.toLowerCase()] != null) ? nm[item.district.toLowerCase()]
+               : undefined;
+             if (km !== undefined) return { ...item, distanceKm: km };
          }
          return item;
       });

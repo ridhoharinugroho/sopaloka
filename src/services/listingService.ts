@@ -252,8 +252,13 @@ export async function fetchNearestDistances(lat: number, lon: number): Promise<R
     if (error || !data) return {};
     const map: Record<string, number> = {};
     for (const row of data) {
+      // Key by code (without dots) for listings with district_code
       if (row.district_code) {
         map[row.district_code] = row.distance_km;
+      }
+      // Key by lowercase district name for listings without district_code (majority)
+      if (row.district_name) {
+        map[row.district_name.toLowerCase()] = row.distance_km;
       }
     }
     return map;
