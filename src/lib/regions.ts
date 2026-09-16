@@ -108,3 +108,30 @@ export function getDistrictsByRegency(regencyCode?: string | null): FormattedDis
     };
   });
 }
+
+import { supabase } from "./supabase";
+
+export async function getDistrictsFromDB(regencyCode?: string | null): Promise<FormattedDistrict[]> {
+  if (!regencyCode) return [];
+  
+  try {
+    const { data, error } = await supabase
+      .from("districts")
+      .select("id, name")
+      .eq("regency_code", regencyCode)
+      .order("name", { ascending: true });
+      
+    if (error) {
+      console.error("[getDistrictsFromDB] Error:", error.message);
+      return [];
+    }
+    
+    return (data || []).map(d => ({
+      code: d.id,
+      name: d.name
+    }));
+  } catch (err) {
+    console.error("[getDistrictsFromDB] Exception:", err);
+    return [];
+  }
+}

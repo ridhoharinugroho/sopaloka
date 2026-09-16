@@ -33,6 +33,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     paymentMethod,
     provinceCode,
     regencyCode,
+    districtCode,
     regionId,
     codPoint,
     isBu,
@@ -48,6 +49,8 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     setPaymentMethod,
     setProvinceCode,
     setRegencyCode,
+    setDistrictCode,
+    setDistrict,
     setRegionId,
     setCodPoint,
     setIsBu,
@@ -207,9 +210,15 @@ export const ListingForm: React.FC<ListingFormProps> = ({
         <LocationPicker
           provinceCode={provinceCode}
           regencyCode={regencyCode}
+          districtCode={districtCode}
           regionId={regionId}
+          showDistrict={true}
           onProvinceChange={setProvinceCode}
           onRegencyChange={setRegencyCode}
+          onDistrictChange={(code, name) => {
+            setDistrictCode(code);
+            setDistrict(name);
+          }}
           onRegionIdChange={setRegionId}
         />
         <input

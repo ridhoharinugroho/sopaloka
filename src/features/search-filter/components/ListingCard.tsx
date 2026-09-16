@@ -43,7 +43,8 @@ export const ListingCard: React.FC<ListingCardProps> = ({
       ? listing.images[0]
       : "https://via.placeholder.com/400x300?text=SOPALOKA";
 
-  const regionName = getRegionById(listing.regionId)?.shortName || getRegionById(listing.regionId)?.name || "Nasional";
+  const codeOrId = listing.regencyCode || listing.regionId;
+  const regionName = getRegionById(codeOrId)?.shortName || getRegionById(codeOrId)?.name || "Nasional";
 
   const locationText = listing.village
     ? `${listing.district || regionName} • ${listing.village}`
