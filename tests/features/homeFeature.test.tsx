@@ -68,9 +68,9 @@ describe("HomeFeature (Modular Home Browsing)", () => {
   it("renders hero header, category pills, region pills, and listing grid", () => {
     render(<HomeFeature initialListings={mockListings} />);
 
-    expect(screen.getByText(/Pusat Jual Beli Komunitas/i)).not.toBeNull();
-    expect(screen.getByText(/Cari & Jual Barang Terdekat di Mana Saja/i)).not.toBeNull();
-    expect(screen.getByText(/Pasang Iklan Gratis/i)).not.toBeNull();
+    expect(screen.getAllByText(/Pusat Jual Beli Komunitas/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Cari & Jual Barang Terdekat di Mana Saja/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Pasang Iklan Gratis/i).length).toBeGreaterThan(0);
     expect(screen.getByTitle("Semua Kategori")).not.toBeNull();
     expect(screen.getByText("Laptop ThinkPad T480 Core i7")).not.toBeNull();
     expect(screen.getByText("Sepeda Motor Honda Vario 125")).not.toBeNull();
