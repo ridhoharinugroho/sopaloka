@@ -229,7 +229,7 @@ export const HeroHeader: React.FC<HeroHeaderProps> = ({
         onTouchEnd={() => setIsHoveredOrTouched(false)}
         onMouseEnter={() => setIsHoveredOrTouched(true)}
         onMouseLeave={() => setIsHoveredOrTouched(false)}
-        className="relative z-10 flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-4 px-[calc(50%-75px)] sm:px-[calc(50%-100px)] pt-0 pb-0 scroll-smooth w-full items-center"
+        className="relative z-10 flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-2 px-[calc(50%-85px)] sm:px-[calc(50%-110px)] pt-0 pb-0 scroll-smooth w-full items-center"
       >
         {extendedSlides.map((slide, idx) => {
           const SIcon = slide.Icon;
@@ -239,7 +239,7 @@ export const HeroHeader: React.FC<HeroHeaderProps> = ({
             <div
               key={slide._key}
               data-slide={idx}
-              className={`hero-carousel-slide snap-center flex-none w-[150px] sm:w-[200px] aspect-[4/5] overflow-hidden rounded-2xl relative ${slide.imageUrl ? slide.bg : `bg-gradient-to-br ${slide.bg}`} text-white shadow-md flex flex-col justify-between select-none`}
+              className={`hero-carousel-slide snap-center flex-none w-[170px] sm:w-[220px] aspect-[4/5] overflow-hidden rounded-xl relative ${slide.imageUrl ? slide.bg : `bg-gradient-to-br ${slide.bg}`} text-white shadow-md flex flex-col justify-between select-none`}
             >
               {/* If imageUrl exists, render the full image instead of text */}
               {(slide as any).imageUrl ? (
