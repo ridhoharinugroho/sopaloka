@@ -178,7 +178,10 @@ export const ListingCard: React.FC<ListingCardProps> = ({
 
         <button
           type="button"
-          onClick={() => onCardClick?.(listing)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onCardClick?.(listing);
+          }}
           className="bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl p-1.5 flex items-center justify-center transition-colors cursor-pointer"
           title="Lihat Detail Barang"
         >

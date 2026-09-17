@@ -131,4 +131,37 @@ describe("Search + Filter Feature Component", () => {
     expect(screen.getByText("Laptop Asus ROG Bekas")).not.toBeNull();
     expect(screen.getByText("Sepeda Polygon Xtrada")).not.toBeNull();
   });
+
+  it("harus menolak false positive substring seperti pembuangan/langsung saat mencari angin/angun", () => {
+    const testListings = [
+      {
+        ...MOCK_LISTINGS[0],
+        id: "test-mesin-cuci",
+        title: "Mesin Cuci Sharp 2 Tabung",
+        category: "perabot",
+        description: "Tabung cuci & pembuangan normal kencang semua",
+      },
+      {
+        ...MOCK_LISTINGS[1],
+        id: "test-beat",
+        title: "Honda Beat FI ESP",
+        category: "kendaraan",
+        description: "Langsung pakai no PR surat komplit",
+      },
+    ];
+
+    render(<SearchFilterFeature initialListings={testListings} />);
+
+    const searchInput = screen.getByPlaceholderText(/Cari barang/i);
+
+    // Cari 'angin' -> 'pembuangan' TIDAK boleh cocok
+    fireEvent.change(searchInput, { target: { value: "angin" } });
+    expect(screen.queryByText("Mesin Cuci Sharp 2 Tabung")).toBeNull();
+    expect(screen.getByText("Barang Tidak Ditemukan")).not.toBeNull();
+
+    // Cari 'angun' -> 'langsung' TIDAK boleh cocok
+    fireEvent.change(searchInput, { target: { value: "angun" } });
+    expect(screen.queryByText("Honda Beat FI ESP")).toBeNull();
+    expect(screen.getByText("Barang Tidak Ditemukan")).not.toBeNull();
+  });
 });

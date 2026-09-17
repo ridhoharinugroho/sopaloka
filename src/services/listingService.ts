@@ -19,7 +19,7 @@ let lastFetchListingsTime = 0;
 export const DEFAULT_MASTER_SYNONYMS: Array<{ term: string; synonyms: string[] }> = [
   { term: "laptop", synonyms: ["notebook", "komputer", "pc", "netbook"] },
   { term: "hp", synonyms: ["handphone", "ponsel", "smartphone", "telepon", "android", "iphone"] },
-  { term: "motor", synonyms: ["sepeda motor", "motorik", "moped"] },
+  { term: "motor", synonyms: ["sepeda motor", "motorik", "moped", "kendaraan"] },
   { term: "mobil", synonyms: ["kendaraan", "otomotif", "car"] },
   { term: "tv", synonyms: ["televisi", "television", "tivi"] },
   { term: "kulkas", synonyms: ["lemari es", "refrigerator", "freezer"] },

@@ -3,7 +3,6 @@ import type { ListingModel } from "../../../domain/listing/listing.contract";
 import { ListingGallery } from "./ListingGallery";
 import { ListingMetadata } from "./ListingMetadata";
 import { ListingActions } from "./ListingActions";
-import { useModalHistory } from "../../../hooks/useModalHistory";
 
 export interface ListingDetailProps {
   listing: ListingModel | null;
@@ -26,28 +25,42 @@ export const ListingDetail: React.FC<ListingDetailProps> = ({
   onShareClick,
   className = "",
 }) => {
-  useModalHistory(isOpen, onClose, "listing_detail");
 
   if (!isOpen || !listing) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fade-in"
+      onClick={onClose}
+      data-testid="listing-detail-modal-overlay"
+    >
       <div
         className={`relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 max-h-[90vh] flex flex-col ${className}`.trim()}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header Bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white sticky top-0 z-10">
           <h2 className="text-sm font-bold text-gray-800 truncate pr-4">
             Detail Produk — {listing.title}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Tutup modal detail"
-            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center font-bold text-sm transition-colors"
-          >
-            ✕
-          </button>
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Tutup Detail"
+              className="sr-only"
+            >
+              Tutup Detail
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Tutup modal detail"
+              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Modal Content Body */}

@@ -46,6 +46,52 @@ function resolveItemDistance(
   return undefined;
 }
 
+function getLevenshteinDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+
+  const matrix: number[][] = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          matrix[i][j - 1] + 1,     // insertion
+          matrix[i - 1][j] + 1      // deletion
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function isWordMatch(token: string, target: string): boolean {
+  if (token === target) return true;
+  // Prefix matching for query terms with length >= 4 (e.g. 'kulk' -> 'kulkas')
+  if (target.length >= 4 && token.startsWith(target)) return true;
+
+  const lenDiff = Math.abs(token.length - target.length);
+  // Guard against disparate length words (prevents 'pembuangan' [10] matching 'angin' [5])
+  if (target.length <= 3) {
+    return false; // Very short tokens (<=3 chars) require exact match
+  }
+  if (target.length <= 5 && lenDiff > 1) {
+    return false;
+  }
+  if (target.length > 5 && lenDiff > 2) {
+    return false;
+  }
+
+  const maxDistance = target.length <= 4 ? 1 : 1;
+  return getLevenshteinDistance(token, target) <= maxDistance;
+}
+
 export function useSearchFilter({ initialListings = [], category }: UseSearchFilterProps = {}) {
   const [filterState, setFilterState] = useState<FilterState>(() => {
     const base = mapFilterDtoToDomain(null);
@@ -169,6 +215,10 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
         return true;
       });
 
+    // Type definition for results with tier
+    type TieredListing = typeof domainListings[0] & { tier?: number };
+    let tieredResults: TieredListing[] = results;
+
     // 2. Apply Fuzzy Search if query exists
     if (q) {
       const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
@@ -179,33 +229,57 @@ export function useSearchFilter({ initialListings = [], category }: UseSearchFil
         return Array.from(new Set([word, ...syns])); // Array kata beserta semua sinonimnya tanpa duplikasi
       });
       
-      // Pencarian multi-kata (Intersection): Semua grup kata harus cocok
-      for (const wordGroup of expandedWordGroups) {
-        
-        // Dalam satu grup kata (Misal: ['laptop', 'notebook']), gunakan Union (OR)
-        const groupMatches = new Map();
-        
-        for (const option of wordGroup) {
-          const fuse = new Fuse(results, {
-            keys: ["title", "description", "category"],
-            threshold: 0.3, // Typo tolerance
-            ignoreLocation: true,
-            distance: 1000,
-          });
-          
-          const optionResults = fuse.search(option);
-          for (const res of optionResults) {
-            groupMatches.set(res.item.id, res.item); // Simpan unique berdasarkan ID
+      const matchedResults: TieredListing[] = [];
+
+      for (const item of results) {
+        let maxTierForThisItem = 1; // Mulai dengan asumsi tier 1 (terbaik)
+        let isItemPass = true;
+
+        // Tokenize text per item
+        const titleTokens = item.title ? item.title.toLowerCase().split(/\s+/).filter(Boolean) : [];
+        const catTokens = item.category ? item.category.toLowerCase().split(/\s+/).filter(Boolean) : [];
+        const descTokens = item.description ? item.description.toLowerCase().split(/\s+/).filter(Boolean) : [];
+
+        // Evaluasi logika AND dengan word-boundary & length constraint: Setiap token (atau sinonimnya) WAJIB cocok
+        for (const wordGroup of expandedWordGroups) {
+          const foundInTitle = wordGroup.some(target => titleTokens.some(tok => isWordMatch(tok, target)));
+          if (foundInTitle) continue; // Masih Tier 1
+
+          const foundInCat = wordGroup.some(target => catTokens.some(tok => isWordMatch(tok, target)));
+          if (foundInCat) {
+             if (maxTierForThisItem < 2) maxTierForThisItem = 2; // Turun ke Tier 2 karena butuh bantuan kategori
+             continue;
           }
+
+          const foundInDesc = wordGroup.some(target => descTokens.some(tok => isWordMatch(tok, target)));
+          if (foundInDesc) {
+             if (maxTierForThisItem < 3) maxTierForThisItem = 3; // Turun ke Tier 3 karena terpaksa pakai deskripsi
+             continue;
+          }
+
+          // Gagal ditemukan di Judul, Kategori, maupun Deskripsi -> DIBUANG
+          isItemPass = false;
+          break;
         }
-        
-        // Perbarui `results` hanya dengan barang yang lulus pengecekan grup kata ini
-        results = Array.from(groupMatches.values()) as typeof domainListings;
+
+        if (isItemPass) {
+          matchedResults.push({ ...item, tier: maxTierForThisItem });
+        }
       }
+
+      tieredResults = matchedResults;
     }
 
     // 3. Sort results
-    return results.sort((a, b) => {
+    return tieredResults.sort((a, b) => {
+        // 1. Prioritaskan Tier terlebih dahulu (1 paling atas, 3 paling bawah)
+        const tierA = a.tier ?? 0;
+        const tierB = b.tier ?? 0;
+        if (tierA !== tierB) {
+            return tierA - tierB;
+        }
+
+        // 2. Jika Tier sama, jalankan sort eksisting (Jarak, Harga, Terbaru, dll)
         if (filterState.isNearest && filterState.nearestDistances) {
           const nm = filterState.nearestDistances;
           const distA = resolveItemDistance(a.districtCode, a.district, nm) ?? 999999;

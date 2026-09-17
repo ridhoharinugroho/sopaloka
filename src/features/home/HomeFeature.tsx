@@ -9,7 +9,6 @@ import { SearchFilterFeature } from "../search-filter/SearchFilterFeature";
 import { ListingDetail } from "../listing/components/ListingDetail";
 import type { ListingModel } from "../../domain/listing/listing.contract";
 import { isFavorite } from "../../services/listingService";
-import { useDoubleBackExit } from "../../hooks/useDoubleBackExit";
 
 export interface HomeFeatureProps extends UseHomeFeedProps {
   onCreateListingClick?: () => void;
@@ -42,8 +41,6 @@ export const HomeFeature: React.FC<HomeFeatureProps> = ({
 
   const activeCategory = selectedCategory !== undefined ? selectedCategory : internalCategory;
   const selectCategory = onSelectCategory || internalSelectCategory;
-
-  const { showExitToast } = useDoubleBackExit(!Boolean(selectedListing));
 
   const [activeImageIndex, setActiveImageIndex] = React.useState<number>(0);
   const [favVersion, setFavVersion] = React.useState<number>(0);
@@ -86,41 +83,13 @@ export const HomeFeature: React.FC<HomeFeatureProps> = ({
 
       {/* 5. Listing Detail Overlay / Modal View */}
       {selectedListing && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in"
-          onClick={closeListingDetail}
-          data-testid="listing-detail-modal-overlay"
-        >
-          <div
-            className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={closeListingDetail}
-              className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold flex items-center justify-center transition-colors cursor-pointer"
-              aria-label="Tutup Detail"
-            >
-              ✕
-            </button>
-            <div className="p-6">
-              <ListingDetail
-                listing={selectedListing}
-                isOpen={Boolean(selectedListing)}
-                activeImageIndex={activeImageIndex}
-                onImageSelect={setActiveImageIndex}
-                onClose={closeListingDetail}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Double back exit toast */}
-      {showExitToast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur-sm text-white px-5 py-2.5 rounded-full text-sm font-medium z-50 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-200">
-          Tekan sekali lagi untuk keluar
-        </div>
+        <ListingDetail
+          listing={selectedListing}
+          isOpen={Boolean(selectedListing)}
+          activeImageIndex={activeImageIndex}
+          onImageSelect={setActiveImageIndex}
+          onClose={closeListingDetail}
+        />
       )}
     </div>
   );
