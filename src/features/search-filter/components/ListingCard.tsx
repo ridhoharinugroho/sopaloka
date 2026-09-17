@@ -64,6 +64,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
 
   return (
     <div
+      data-testid={`listing-card-${listing.id}`}
       onClick={() => onCardClick?.(listing)}
       className={`product-card group bg-white rounded-2xl p-2.5 sm:p-3 border border-slate-200 shadow-sm hover:shadow-md hover:border-rose-300 transition-all flex flex-col justify-between overflow-hidden relative cursor-pointer ${className}`.trim()}
     >

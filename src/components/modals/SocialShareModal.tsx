@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Share2, MapPin, MessageCircle, Send, Users, Copy, Check, X } from "lucide-react";
 import type { ListingModel } from "../../domain/listing/listing.contract";
+import { useModalHash } from "../../hooks/useModalHash";
 
 export interface SocialShareModalProps {
   isOpen: boolean;
@@ -14,6 +15,12 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   onClose,
 }) => {
   const [copied, setCopied] = useState(false);
+
+  const { handleSafeClose } = useModalHash({
+    isOpen: Boolean(isOpen && listing),
+    onClose,
+    hash: "share",
+  });
 
   if (!isOpen || !listing) return null;
 
@@ -32,7 +39,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
     <div
       id="modal-share-product"
       className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-fade-in"
-      onClick={onClose}
+      onClick={handleSafeClose}
     >
       <div
         className="modal-content relative w-full max-w-md bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden z-10 p-4 sm:p-5 space-y-4 text-slate-800"
@@ -50,7 +57,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleSafeClose}
             className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition cursor-pointer"
           >
             <X className="w-4 h-4" />

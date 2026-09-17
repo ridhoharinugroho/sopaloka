@@ -14,6 +14,7 @@ import { AuthModal } from "../src/features/auth/AuthModal";
 import { ProfileModal } from "../src/features/profile/components/ProfileModal";
 import { FilterModal } from "../src/features/search-filter/components/FilterModal";
 import { isUserLoggedIn } from "../src/services/authService";
+import { useModalHash } from "../src/hooks/useModalHash";
 import { X } from "lucide-react";
 
 export default function HomePage() {
@@ -28,6 +29,57 @@ export default function HomePage() {
   const [selectedRegion, setSelectedRegion] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [activeTab, setActiveTab] = useState<"home" | "favorites" | "filters" | "reviews" | "toko-saya" | "profile">("home");
+
+  const { handleSafeClose: closeNotifModal } = useModalHash({
+    isOpen: isNotifModalOpen,
+    onClose: () => setIsNotifModalOpen(false),
+    hash: "notif",
+  });
+
+  const { handleSafeClose: closeCreateListingModal } = useModalHash({
+    isOpen: isCreateListingModalOpen,
+    onClose: () => setIsCreateListingModalOpen(false),
+    hash: "pasang-iklan",
+  });
+
+  const { handleSafeClose: closeTraktirKopiModal } = useModalHash({
+    isOpen: isTraktirKopiModalOpen,
+    onClose: () => setIsTraktirKopiModalOpen(false),
+    hash: "traktir-kopi",
+  });
+
+  const { handleSafeClose: closeReviewsModal } = useModalHash({
+    isOpen: isReviewsModalOpen,
+    onClose: () => {
+      setIsReviewsModalOpen(false);
+      setActiveTab("home");
+    },
+    hash: "reviews",
+  });
+
+  const { handleSafeClose: closeAuthModal } = useModalHash({
+    isOpen: isAuthModalOpen,
+    onClose: () => {
+      setIsAuthModalOpen(false);
+      setActiveTab("home");
+    },
+    hash: "auth",
+  });
+
+  const { handleSafeClose: closeProfileModal } = useModalHash({
+    isOpen: isProfileModalOpen,
+    onClose: () => {
+      setIsProfileModalOpen(false);
+      setActiveTab("home");
+    },
+    hash: "profile",
+  });
+
+  const { handleSafeClose: closeFilterModal } = useModalHash({
+    isOpen: isFilterModalOpen,
+    onClose: () => setIsFilterModalOpen(false),
+    hash: "filter",
+  });
 
   // Close open modal on Escape key
   React.useEffect(() => {
@@ -139,13 +191,13 @@ export default function HomePage() {
       {/* Traktir Kopi Modal */}
       <TraktirKopiModal
         isOpen={isTraktirKopiModalOpen}
-        onClose={() => setIsTraktirKopiModalOpen(false)}
+        onClose={closeTraktirKopiModal}
       />
 
       {/* Filter Modal (Wilayah & Kategori) */}
       <FilterModal
         isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
+        onClose={closeFilterModal}
         selectedRegion={selectedRegion}
         selectedCategory={selectedCategory}
         onApply={(region, category) => {
@@ -158,13 +210,13 @@ export default function HomePage() {
       {isNotifModalOpen && (
         <div
           className="fixed inset-0 z-[10000] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in"
-          onClick={() => setIsNotifModalOpen(false)}
+          onClick={closeNotifModal}
         >
           <div
             className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <NotificationFeature onClose={() => setIsNotifModalOpen(false)} />
+            <NotificationFeature onClose={closeNotifModal} />
           </div>
         </div>
       )}
@@ -173,7 +225,7 @@ export default function HomePage() {
       {isCreateListingModalOpen && (
         <div
           className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto animate-fade-in"
-          onClick={() => setIsCreateListingModalOpen(false)}
+          onClick={closeCreateListingModal}
         >
           <div
             className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-6 border border-gray-100 max-h-[90vh] overflow-y-auto"
@@ -181,14 +233,14 @@ export default function HomePage() {
           >
             <button
               type="button"
-              onClick={() => setIsCreateListingModalOpen(false)}
+              onClick={closeCreateListingModal}
               className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Tutup Form"
             >
               <X className="w-5 h-5" />
             </button>
             <ListingForm
-              onClose={() => setIsCreateListingModalOpen(false)}
+              onClose={closeCreateListingModal}
             />
           </div>
         </div>
@@ -198,10 +250,7 @@ export default function HomePage() {
       {isReviewsModalOpen && (
         <div
           className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto animate-fade-in"
-          onClick={() => {
-            setIsReviewsModalOpen(false);
-            setActiveTab("home");
-          }}
+          onClick={closeReviewsModal}
         >
           <div
             className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl p-6 border border-gray-100 max-h-[90vh] overflow-y-auto"
@@ -209,10 +258,7 @@ export default function HomePage() {
           >
             <button
               type="button"
-              onClick={() => {
-                setIsReviewsModalOpen(false);
-                setActiveTab("home");
-              }}
+              onClick={closeReviewsModal}
               className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Tutup Ulasan"
             >
@@ -226,10 +272,7 @@ export default function HomePage() {
       {/* Auth Modal (Untuk Pengguna yang Belum Login) */}
       <AuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => {
-          setIsAuthModalOpen(false);
-          setActiveTab("home");
-        }}
+        onClose={closeAuthModal}
         onOpenReviews={() => {
           setIsAuthModalOpen(false);
           setIsReviewsModalOpen(true);
@@ -239,10 +282,7 @@ export default function HomePage() {
       {/* Profile Modal (Untuk Pengguna yang Sudah Login) */}
       <ProfileModal
         isOpen={isProfileModalOpen}
-        onClose={() => {
-          setIsProfileModalOpen(false);
-          setActiveTab("home");
-        }}
+        onClose={closeProfileModal}
         onOpenReviews={() => {
           setIsProfileModalOpen(false);
           setIsReviewsModalOpen(true);

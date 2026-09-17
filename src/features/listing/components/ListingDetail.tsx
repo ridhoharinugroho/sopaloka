@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import type { ListingModel } from "../../../domain/listing/listing.contract";
 import { ListingGallery } from "./ListingGallery";
 import { ListingMetadata } from "./ListingMetadata";
 import { ListingActions } from "./ListingActions";
+import { useModalHash } from "../../../hooks/useModalHash";
+import { SocialShareModal } from "../../../components/modals/SocialShareModal";
 
 export interface ListingDetailProps {
   listing: ListingModel | null;
@@ -25,13 +27,28 @@ export const ListingDetail: React.FC<ListingDetailProps> = ({
   onShareClick,
   className = "",
 }) => {
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  const { handleSafeClose } = useModalHash({
+    isOpen: Boolean(isOpen && listing),
+    onClose,
+    hash: "detail",
+  });
+
+  const handleShare = () => {
+    if (onShareClick) {
+      onShareClick(listing!);
+    } else {
+      setIsShareModalOpen(true);
+    }
+  };
 
   if (!isOpen || !listing) return null;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fade-in"
-      onClick={onClose}
+      onClick={handleSafeClose}
       data-testid="listing-detail-modal-overlay"
     >
       <div
@@ -46,7 +63,7 @@ export const ListingDetail: React.FC<ListingDetailProps> = ({
           <div className="flex items-center">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleSafeClose}
               aria-label="Tutup Detail"
               className="sr-only"
             >
@@ -54,7 +71,7 @@ export const ListingDetail: React.FC<ListingDetailProps> = ({
             </button>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleSafeClose}
               aria-label="Tutup modal detail"
               className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
             >
@@ -82,11 +99,18 @@ export const ListingDetail: React.FC<ListingDetailProps> = ({
           <ListingActions
             listing={listing}
             onContactClick={onContactClick}
-            onShareClick={onShareClick}
-            onClose={onClose}
+            onShareClick={handleShare}
+            onClose={handleSafeClose}
           />
         </div>
       </div>
+
+      {/* Multi-Level Stacked Share Modal */}
+      <SocialShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        listing={listing}
+      />
     </div>
   );
 };
