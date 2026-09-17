@@ -5,6 +5,7 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen, fireEvent, act, cleanup } from "@testing-library/react";
 import { SellerProfileModal } from "../../src/features/seller/components/SellerProfileModal";
 import type { ListingSeller } from "../../src/domain/listing/listing.contract";
+import * as listingServiceModule from "../../src/services/listingService";
 
 const mockSeller: ListingSeller = {
   id: "seller-pak-joko",
@@ -123,5 +124,60 @@ describe("SellerProfileModal Component (Pure React)", () => {
     expect(screen.queryByTestId("etalase-item-detail-modal-overlay")).toBeNull();
     expect(screen.getByText("Profil Toko & Penjual")).not.toBeNull();
     expect(screen.getByText("Rian Gadget Solo")).not.toBeNull();
+  });
+
+  it("asynchronously fetches seller listings from Supabase cloud if initial local cache is empty", async () => {
+    const mockCloudListings: any[] = [
+      {
+        id: "cloud-001",
+        title: "Laptop Gaming Asus ROG Strix",
+        price: 15000000,
+        seller: {
+          id: "seller-zamir",
+          name: "Zamir Shop",
+          phone: "081251018765",
+        },
+        status: "active",
+        images: ["https://example.com/laptop.jpg"],
+      },
+      {
+        id: "cloud-002",
+        title: "MacBook Pro M1 2020 Space Grey",
+        price: 12500000,
+        seller: {
+          id: "seller-zamir",
+          name: "Zamir Shop",
+          phone: "081251018765",
+        },
+        status: "active",
+        images: ["https://example.com/macbook.jpg"],
+      },
+    ];
+
+    const fetchSpy = vi.spyOn(listingServiceModule, "fetchSellerListingsFromSupabase").mockResolvedValueOnce(mockCloudListings);
+
+    render(
+      <SellerProfileModal
+        isOpen={true}
+        onClose={() => {}}
+        sellerId="seller-zamir"
+        seller={{
+          id: "seller-zamir",
+          name: "Zamir Shop",
+          storeName: "Zamir Shop",
+          phone: "081251018765",
+          avatar: null,
+        }}
+      />
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith("seller-zamir", "081251018765");
+
+    // After async resolve, items from cloud should appear in etalase
+    const item1 = await screen.findByText(/Laptop Gaming Asus ROG Strix/i);
+    const item2 = await screen.findByText(/MacBook Pro M1 2020 Space Grey/i);
+
+    expect(item1).not.toBeNull();
+    expect(item2).not.toBeNull();
   });
 });

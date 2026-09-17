@@ -257,6 +257,8 @@ export function processAndBroadcastSupabaseListings(cloudData: any[]): ListingIt
   const finalData = cleanCloud.length > 0 ? cleanCloud : [...SAMPLE_LISTINGS];
   inMemoryListings = finalData;
   if (typeof window !== "undefined") {
+    (window as any).__listingsCache = finalData;
+    (window as any).__listings = finalData;
     window.dispatchEvent(new CustomEvent("listingsChanged", { detail: finalData }));
   }
   return finalData;
@@ -350,6 +352,135 @@ export async function fetchPublicListingsFromSupabase(force = false): Promise<Li
     isFetchingListingsFromSupabase = false;
   }
   return getPublicListings();
+}
+
+export async function fetchSellerListingsFromSupabase(
+  sellerId?: string | null,
+  sellerPhone?: string | null
+): Promise<ListingItem[]> {
+  const targetId = sellerId ? String(sellerId).trim() : "";
+  const rawPhone = sellerPhone ? String(sellerPhone).replace(/\D/g, "") : "";
+
+  // 1. Initial quick match from local cache
+  const current = getPublicListings();
+  const matchedLocal = current.filter((l) => {
+    const sId = l.seller?.id || (l as any).seller_id;
+    if (targetId && sId && String(sId).trim() === targetId) return true;
+    if (targetId && (targetId === "user-ridho" || targetId === "user-1787309560138")) {
+      if (sId === "user-ridho" || sId === "user-1787309560138") return true;
+    }
+    const sPhone = (l.seller?.phone || (l as any).seller_phone || "").replace(/\D/g, "");
+    if (rawPhone && sPhone && (sPhone === rawPhone || sPhone.endsWith(rawPhone) || rawPhone.endsWith(sPhone))) {
+      return true;
+    }
+    return false;
+  });
+
+  // 2. Query Supabase directly (ensures fresh cloud data in production)
+  if (supabase && (targetId || rawPhone)) {
+    try {
+      let query = supabase
+        .from("listings")
+        .select("*")
+        .neq("status", "deleted")
+        .order("created_at", { ascending: false });
+
+      if (targetId && rawPhone) {
+        const altPhone = rawPhone.startsWith("62")
+          ? "0" + rawPhone.slice(2)
+          : rawPhone.startsWith("0")
+          ? "62" + rawPhone.slice(1)
+          : "";
+        const phoneClause = altPhone
+          ? `,seller_phone.eq.${rawPhone},seller_phone.eq.${altPhone}`
+          : `,seller_phone.eq.${rawPhone}`;
+        query = query.or(`seller_id.eq.${targetId}${phoneClause}`);
+      } else if (targetId) {
+        if (targetId === "user-ridho" || targetId === "user-1787309560138") {
+          query = query.or("seller_id.eq.user-ridho,seller_id.eq.user-1787309560138");
+        } else {
+          query = query.eq("seller_id", targetId);
+        }
+      } else if (rawPhone) {
+        query = query.eq("seller_phone", rawPhone);
+      }
+
+      const { data, error } = await query;
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const mappedListings: ListingItem[] = data.map((c: any) => {
+          let parsedImages: string[] = [];
+          if (Array.isArray(c.images)) {
+            parsedImages = c.images;
+          } else if (typeof c.images === "string") {
+            try {
+              const p = JSON.parse(c.images);
+              if (Array.isArray(p)) parsedImages = p;
+              else if (c.images.startsWith("http")) parsedImages = [c.images];
+            } catch {
+              if (c.images.startsWith("http")) parsedImages = [c.images];
+            }
+          }
+          if (!parsedImages || parsedImages.length === 0) {
+            parsedImages = ["https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=800&q=80"];
+          }
+
+          return {
+            id: c.id,
+            title: c.title || "Barang Jualan",
+            price: Number(c.price) || 0,
+            category: c.category || "lainnya",
+            condition: c.condition || "good",
+            negoType: c.nego_type || c.negoType || "nego_alus",
+            paymentMethod: c.payment_method || c.paymentMethod || "cod",
+            regionId: c.region || c.regionId || "",
+            district: c.district || "",
+            provinceCode: c.province_code || c.provinceCode || null,
+            regencyCode: c.regency_code || c.regencyCode || null,
+            districtCode: c.district_code || c.districtCode || null,
+            village: c.village || "",
+            codPoint: c.cod_point || c.codPoint || (c.district ? "COD " + c.district : "COD"),
+            description: c.description || "",
+            images: parsedImages,
+            seller: {
+              id: c.seller_id || targetId || "user-anon",
+              name: c.seller_name || "Penjual",
+              storeName: c.seller_name || "Penjual",
+              phone: c.seller_phone || "081234567890",
+              avatar: c.seller_avatar || "",
+              region: c.region || "",
+            },
+            status: c.status || "active",
+            isSold: c.status === "sold",
+            is_bu: Boolean(c.is_bu || c.isBu),
+            isBu: Boolean(c.is_bu || c.isBu),
+            bu_expires_at: c.bu_expires_at || null,
+            bu_activated_at: c.bu_activated_at || null,
+            qris_verified: Boolean(c.qris_verified),
+            payment_status: c.payment_status || (c.is_bu ? "verified" : "none"),
+            views: Number(c.views) || 0,
+            createdAt: c.created_at || c.createdAt || new Date().toISOString(),
+          };
+        });
+
+        // Merge into inMemoryListings and window cache
+        const existingIds = new Set(inMemoryListings.map((l) => l.id));
+        const newItems = mappedListings.filter((item) => !existingIds.has(item.id));
+        if (newItems.length > 0) {
+          inMemoryListings = [...inMemoryListings, ...newItems];
+        }
+        if (typeof window !== "undefined") {
+          (window as any).__listingsCache = inMemoryListings;
+          (window as any).__listings = inMemoryListings;
+        }
+
+        return mappedListings;
+      }
+    } catch (err) {
+      console.warn("[fetchSellerListingsFromSupabase] fallback to local:", err);
+    }
+  }
+
+  return matchedLocal;
 }
 
 export function cleanLocationName(name?: string | null): string {

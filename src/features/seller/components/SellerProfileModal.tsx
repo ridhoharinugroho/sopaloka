@@ -14,7 +14,7 @@ import {
   Send,
 } from "lucide-react";
 import type { ListingModel, ListingSeller } from "../../../domain/listing/listing.contract";
-import { getPublicListings } from "../../../services/listingService";
+import { getPublicListings, fetchSellerListingsFromSupabase } from "../../../services/listingService";
 import { mapListingDtoToDomain } from "../../../domain/listing/listing.mapper";
 import {
   getSellerReviews,
@@ -71,17 +71,41 @@ export const SellerProfileModal: React.FC<SellerProfileModalProps> = ({
   useEffect(() => {
     if (!isOpen || !effectiveSellerId) return;
 
+    let isMounted = true;
+
+    // 1. Quick initial synchronous render from local cache
     try {
       const all = getPublicListings().map((item: any) =>
         "negoType" in item ? (item as ListingModel) : mapListingDtoToDomain(item)
       );
-      const filtered = all.filter(
-        (item) => item.seller?.id === effectiveSellerId || (item as any).seller_id === effectiveSellerId
-      );
+      const cleanPhone = (propSeller?.phone || "").replace(/\D/g, "");
+      const filtered = all.filter((item) => {
+        const sId = item.seller?.id || (item as any).seller_id;
+        if (sId === effectiveSellerId) return true;
+        if (effectiveSellerId === "user-ridho" || effectiveSellerId === "user-1787309560138") {
+          if (sId === "user-ridho" || sId === "user-1787309560138") return true;
+        }
+        const sPhone = (item.seller?.phone || (item as any).seller_phone || "").replace(/\D/g, "");
+        if (cleanPhone && sPhone && (sPhone === cleanPhone || sPhone.endsWith(cleanPhone) || cleanPhone.endsWith(sPhone))) {
+          return true;
+        }
+        return false;
+      });
       setSellerListings(filtered);
     } catch {
       setSellerListings([]);
     }
+
+    // 2. Direct Cloud Fetch from Supabase (Guarantees production etalase shows all items)
+    void fetchSellerListingsFromSupabase(effectiveSellerId, propSeller?.phone).then((cloudItems) => {
+      if (!isMounted) return;
+      if (Array.isArray(cloudItems) && cloudItems.length > 0) {
+        const domainItems = cloudItems.map((item: any) =>
+          "negoType" in item ? (item as ListingModel) : mapListingDtoToDomain(item)
+        );
+        setSellerListings(domainItems);
+      }
+    });
 
     try {
       const sellerRevs = getSellerReviews(effectiveSellerId);
@@ -94,7 +118,11 @@ export const SellerProfileModal: React.FC<SellerProfileModalProps> = ({
     setSelectedProduct(null);
     setReviewError(null);
     setReviewSuccess(null);
-  }, [isOpen, effectiveSellerId]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, effectiveSellerId, propSeller?.phone]);
 
   // Derived seller info
   const resolvedSeller: ListingSeller = useMemo(() => {
