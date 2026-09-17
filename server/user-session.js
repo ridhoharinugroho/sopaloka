@@ -52,12 +52,15 @@ export function getUserSessionFromRequest(req) {
   const secret = getSecret();
   if (!secret) return null;
   const header = String(req?.headers?.cookie || "");
-  const match = header
-    .split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(`${USER_SESSION_COOKIE}=`));
+  const parts = header.split(";").map((part) => part.trim());
+  let match = parts.find((part) => part.startsWith(`${USER_SESSION_COOKIE}=`));
+  let cookieName = USER_SESSION_COOKIE;
+  if (!match) {
+    match = parts.find((part) => part.startsWith("solosatset_user_session="));
+    cookieName = "solosatset_user_session";
+  }
   if (!match) return null;
-  const token = match.slice(USER_SESSION_COOKIE.length + 1);
+  const token = match.slice(cookieName.length + 1);
   const [body, signature] = token.split(".");
   if (!body || !signature) return null;
   const expected = crypto.createHmac("sha256", secret).update(body).digest("base64url");

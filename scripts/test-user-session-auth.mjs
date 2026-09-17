@@ -28,7 +28,7 @@ console.log("=== User Session HMAC & TTL Security Tests ===\n");
 
   // Tamper body
   const tamperedBody = body.substring(0, body.length - 1) + "X";
-  const req = { headers: { cookie: `solosatset_user_session=${tamperedBody}.${signature}` } };
+  const req = { headers: { cookie: `sopaloka_user_session=${tamperedBody}.${signature}` } };
 
   const payload = getUserSessionFromRequest(req);
   assert.strictEqual(payload, null, "Tampered session must be rejected");
@@ -42,7 +42,7 @@ console.log("=== User Session HMAC & TTL Security Tests ===\n");
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
   import("node:crypto").then((crypto) => {
     const signature = crypto.createHmac("sha256", process.env.USER_SESSION_SECRET).update(body).digest("base64url");
-    const req = { headers: { cookie: `solosatset_user_session=${body}.${signature}` } };
+    const req = { headers: { cookie: `sopaloka_user_session=${body}.${signature}` } };
     const parsed = getUserSessionFromRequest(req);
     assert.strictEqual(parsed, null, "Expired session must be rejected");
     console.log("✓ 3. Expired session correctly rejected");
@@ -57,7 +57,7 @@ console.log("\n=== Push Notify API Authorization Tests ===\n");
 function createMockReq(userId) {
   const token = signUserSession({ id: userId });
   return {
-    headers: { cookie: `solosatset_user_session=${token}` },
+    headers: { cookie: `sopaloka_user_session=${token}` },
     body: { notificationId: "notif-1" },
   };
 }

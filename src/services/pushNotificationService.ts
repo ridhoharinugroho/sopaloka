@@ -142,7 +142,7 @@ export async function sendPushBroadcast({
       body: JSON.stringify({
         title: title || "📢 SOPALOKA — Jual Beli Barang Terdekat — Pantau Cocok Bayar",
         body: body || "Pembaruan sistem & info barang terbaru!",
-        url: url || "https://solosatset.vercel.app/",
+        url: url || "https://sopaloka.vercel.app/",
         tag: tag || "sopaloka-update",
         targetUserId,
         targetEmail,
