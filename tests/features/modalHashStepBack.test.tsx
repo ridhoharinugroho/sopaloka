@@ -97,4 +97,64 @@ describe("useModalHash - Step Back Modal Navigation (Mundur 1 Modal)", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(historyBackSpy).toHaveBeenCalled();
   });
+
+  it("5. 3-level stacked modals: Detail (#detail) -> Profil Toko (#profil-toko) -> Etalase Item (#detail-barang)", () => {
+    const onDetailClose = vi.fn();
+    const onProfileClose = vi.fn();
+    const onEtalaseItemClose = vi.fn();
+
+    // 1. User opens Product Detail modal (#detail)
+    renderHook(
+      ({ isOpen }) => useModalHash({ isOpen, onClose: onDetailClose, hash: "detail" }),
+      { initialProps: { isOpen: true } }
+    );
+    expect(window.location.hash).toBe("#detail");
+
+    // 2. User opens Seller Profile Modal (#detail/profil-toko)
+    renderHook(
+      ({ isOpen }) => useModalHash({ isOpen, onClose: onProfileClose, hash: "profil-toko" }),
+      { initialProps: { isOpen: true } }
+    );
+    expect(window.location.hash).toBe("#detail/profil-toko");
+
+    // 3. User clicks an item in the etalase (#detail/profil-toko/detail-barang)
+    renderHook(
+      ({ isOpen }) => useModalHash({ isOpen, onClose: onEtalaseItemClose, hash: "detail-barang" }),
+      { initialProps: { isOpen: true } }
+    );
+    expect(window.location.hash).toBe("#detail/profil-toko/detail-barang");
+
+    // 4. Back 1x: URL hash pops to #detail/profil-toko
+    act(() => {
+      window.location.hash = "#detail/profil-toko";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+
+    // Etalase Item modal closes!
+    expect(onEtalaseItemClose).toHaveBeenCalledTimes(1);
+    // Profil Toko stays OPEN!
+    expect(onProfileClose).not.toHaveBeenCalled();
+    // Detail stays OPEN!
+    expect(onDetailClose).not.toHaveBeenCalled();
+
+    // 5. Back 2x: URL hash pops to #detail
+    act(() => {
+      window.location.hash = "#detail";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+
+    // Profil Toko modal closes!
+    expect(onProfileClose).toHaveBeenCalledTimes(1);
+    // Detail stays OPEN!
+    expect(onDetailClose).not.toHaveBeenCalled();
+
+    // 6. Back 3x: URL hash pops to root (beranda)
+    act(() => {
+      window.location.hash = "";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+
+    // Detail modal closes (back to beranda)!
+    expect(onDetailClose).toHaveBeenCalledTimes(1);
+  });
 });

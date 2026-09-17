@@ -7,9 +7,9 @@ export interface TokoEtalaseProps {
   allListings: ListingModel[];
   statusFilter: string;
   onFilterChange: (status: string) => void;
-  onEdit: (listing: ListingModel) => void;
-  onStatusChange: (id: string, status: ListingStatus) => void;
-  onDelete: (id: string) => void;
+  onEdit?: (listing: ListingModel) => void;
+  onStatusChange?: (id: string, status: ListingStatus) => void;
+  onDelete?: (id: string) => void;
   className?: string;
 }
 
@@ -154,50 +154,58 @@ export const TokoEtalase: React.FC<TokoEtalaseProps> = ({
                   </div>
                 </div>
 
-                {/* Quick Action Controls */}
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => onEdit(item)}
-                    className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-sm font-medium flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>Edit</span>
-                  </button>
+                {/* Quick Action Controls — hanya di-render bila ada handler (Pure React conditional) */}
+                {(onEdit || onStatusChange || onDelete) && (
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+                    {onEdit && (
+                      <button
+                        type="button"
+                        onClick={() => onEdit(item)}
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-sm font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>Edit</span>
+                      </button>
+                    )}
 
-                  {!isSold ? (
-                    <button
-                      type="button"
-                      onClick={() => onStatusChange(item.id, "sold")}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-sm font-medium flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      <span>Tandai Terjual</span>
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => onStatusChange(item.id, "active")}
-                      className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>Aktifkan</span>
-                    </button>
-                  )}
+                    {onStatusChange && (
+                      !isSold ? (
+                        <button
+                          type="button"
+                          onClick={() => onStatusChange(item.id, "sold")}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-sm font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          <span>Tandai Terjual</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onStatusChange(item.id, "active")}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          <span>Aktifkan</span>
+                        </button>
+                      )
+                    )}
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirm("Apakah Anda yakin ingin menghapus barang ini dari etalase?")) {
-                        onDelete(item.id);
-                      }
-                    }}
-                    className="p-1.5 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer"
-                    title="Hapus Iklan"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                    {onDelete && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm("Apakah Anda yakin ingin menghapus barang ini dari etalase?")) {
+                            onDelete(item.id);
+                          }
+                        }}
+                        className="p-1.5 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer"
+                        title="Hapus Iklan"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })

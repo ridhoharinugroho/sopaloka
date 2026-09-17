@@ -23,8 +23,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   // Dynamically resolve active tab if not explicitly supplied
   let currentTab = propActiveTab;
   if (!currentTab) {
-    const isViewingOtherSeller = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("seller");
-    if (pathname === "/toko-saya" && !isViewingOtherSeller) {
+    if (pathname === "/toko-saya") {
       currentTab = "toko-saya";
     } else {
       currentTab = "home";

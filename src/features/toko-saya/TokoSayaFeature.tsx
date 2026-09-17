@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTokoSaya, UseTokoSayaProps } from "./hooks/useTokoSaya";
 import { TokoHeader } from "./components/TokoHeader";
+import type { SellerInfo } from "./components/TokoHeader";
 import { TokoReviewsSection } from "./components/TokoReviewsSection";
 import { TokoEtalase } from "./components/TokoEtalase";
 import { ListingForm } from "../listing-management/components/ListingForm";
@@ -31,6 +32,9 @@ export const TokoSayaFeature: React.FC<TokoSayaFeatureProps> = ({
 
   const effectiveSellerId = sellerId || currentUser?.id;
 
+  // Tentukan apakah pengunjung adalah pemilik toko (Pure React state — tidak ada manipulasi)
+  const isOwner = !sellerId || sellerId === currentUser?.id;
+
   const {
     listings,
     allListings,
@@ -40,6 +44,15 @@ export const TokoSayaFeature: React.FC<TokoSayaFeatureProps> = ({
     isLoading,
     refreshToko,
   } = useTokoSaya({ initialListings, sellerId: effectiveSellerId });
+
+  // Turunkan info penjual dari listing yang sudah di-fetch (untuk mode lihat toko orang lain)
+  const sellerInfo: SellerInfo | undefined = !isOwner && allListings.length > 0
+    ? {
+        name: allListings[0].seller?.storeName || allListings[0].seller?.name,
+        avatar: allListings[0].seller?.avatar ?? undefined,
+        phone: allListings[0].seller?.phone,
+      }
+    : undefined;
 
   const [isCreatingListing, setIsCreatingListing] = useState<boolean>(false);
   const [editingListing, setEditingListing] = useState<ListingModel | null>(null);
@@ -80,9 +93,10 @@ export const TokoSayaFeature: React.FC<TokoSayaFeatureProps> = ({
     <div className={`space-y-4 sm:space-y-5 max-w-5xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 ${className}`.trim()}>
       {/* Section 1: Top Showcase Banner & Store Profile */}
       <TokoHeader
-        user={currentUser}
+        user={isOwner ? currentUser : undefined}
+        sellerInfo={!isOwner ? sellerInfo : undefined}
         soldCount={stats.sold}
-        onCreateListingClick={handleCreateNew}
+        onCreateListingClick={isOwner ? handleCreateNew : undefined}
       />
 
       {/* Section 2: Rating & Ulasan Toko */}
@@ -98,9 +112,9 @@ export const TokoSayaFeature: React.FC<TokoSayaFeatureProps> = ({
         allListings={allListings}
         statusFilter={statusFilter}
         onFilterChange={setStatusFilter}
-        onEdit={handleEdit}
-        onStatusChange={handleStatusChange}
-        onDelete={handleDelete}
+        onEdit={isOwner ? handleEdit : undefined}
+        onStatusChange={isOwner ? handleStatusChange : undefined}
+        onDelete={isOwner ? handleDelete : undefined}
       />
 
       {/* Create / Edit Listing Modal */}

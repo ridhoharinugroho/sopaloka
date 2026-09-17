@@ -2,8 +2,17 @@ import React from "react";
 import { PlusCircle, CheckCircle } from "lucide-react";
 import type { RegisteredUser } from "../../../services/authService";
 
+export interface SellerInfo {
+  name?: string;
+  avatar?: string;
+  location?: string;
+  phone?: string;
+  createdAt?: string;
+}
+
 export interface TokoHeaderProps {
   user?: RegisteredUser | null;
+  sellerInfo?: SellerInfo;
   soldCount?: number;
   onCreateListingClick?: () => void;
   className?: string;
@@ -11,16 +20,18 @@ export interface TokoHeaderProps {
 
 export const TokoHeader: React.FC<TokoHeaderProps> = ({
   user,
+  sellerInfo,
   soldCount = 0,
   onCreateListingClick,
   className = "",
 }) => {
-  const storeName = user?.storeName || user?.name || "Toko Saya";
+  const storeName = user?.storeName || user?.name || sellerInfo?.name || "Toko Penjual";
   const location = user?.district
     ? `${user.region || "Solo"} • ${user.district}`
-    : user?.region || "-";
-  const phone = user?.phone || "-";
-  const created = user?.createdAt || "-";
+    : user?.region || sellerInfo?.location || "-";
+  const phone = user?.phone || sellerInfo?.phone || "-";
+  const created = user?.createdAt || sellerInfo?.createdAt || "-";
+  const avatarSrc = user?.avatar || sellerInfo?.avatar;
   const initial = storeName.charAt(0).toUpperCase();
 
   return (
@@ -32,10 +43,10 @@ export const TokoHeader: React.FC<TokoHeaderProps> = ({
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 relative z-10">
         <div className="flex items-center gap-3.5 min-w-0 flex-1">
-          {user?.avatar ? (
+          {avatarSrc ? (
             <img
               id="my-store-avatar"
-              src={user.avatar}
+              src={avatarSrc}
               alt={storeName}
               className="w-14 h-14 sm:w-16 sm:h-16 min-w-[56px] min-h-[56px] rounded-2xl object-cover border-2 border-amber-400 flex-shrink-0 shadow-lg"
             />
@@ -73,19 +84,22 @@ export const TokoHeader: React.FC<TokoHeaderProps> = ({
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 flex-shrink-0 relative z-30 pointer-events-auto">
-          <button
-            type="button"
-            id="btn-store-create-listing"
-            onClick={onCreateListingClick}
-            className="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white rounded-xl text-sm font-bold shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer relative z-30 pointer-events-auto hover:scale-105 active:scale-95"
-          >
-            <PlusCircle className="w-4 h-4 text-amber-300" />
-            <span>Pasang Iklan</span>
-          </button>
-        </div>
+        {/* Tombol Pasang Iklan hanya di-render bila onCreateListingClick tersedia (Pure React conditional) */}
+        {onCreateListingClick && (
+          <div className="flex items-center gap-2 flex-shrink-0 relative z-30 pointer-events-auto">
+            <button
+              type="button"
+              id="btn-store-create-listing"
+              onClick={onCreateListingClick}
+              className="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white rounded-xl text-sm font-bold shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer relative z-30 pointer-events-auto hover:scale-105 active:scale-95"
+            >
+              <PlusCircle className="w-4 h-4 text-amber-300" />
+              <span>Pasang Iklan</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+

@@ -11,23 +11,13 @@ import { getCurrentUser, isUserLoggedIn, type RegisteredUser } from "../../src/s
 export default function TokoSayaPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<RegisteredUser | null>(null);
-  const [targetSellerId, setTargetSellerId] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
-    let sellerParam: string | null = null;
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      sellerParam = params.get("seller");
-      if (sellerParam) {
-        setTargetSellerId(sellerParam);
-      }
-    }
-
     const user = getCurrentUser();
     setCurrentUser(user);
-    if (!user && !sellerParam) {
+    if (!user) {
       setIsAuthModalOpen(true);
     }
 
@@ -70,7 +60,7 @@ export default function TokoSayaPage() {
           }
         }}
       >
-        <TokoSayaFeature sellerId={targetSellerId || undefined} />
+        <TokoSayaFeature />
       </AppShell>
 
       <AuthModal

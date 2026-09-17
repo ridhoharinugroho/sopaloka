@@ -29,6 +29,7 @@ export interface ListingMetadataProps {
   listing: ListingModel;
   showBadges?: boolean;
   className?: string;
+  onViewSellerProfile?: (sellerId: string) => void;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -200,6 +201,7 @@ export const ListingMetadata: React.FC<ListingMetadataProps> = ({
   listing,
   showBadges = true,
   className = "",
+  onViewSellerProfile,
 }) => {
   const [isFav, setIsFav] = useState<boolean>(() => checkIsFavorite(listing.id));
   const [copiedWa, setCopiedWa] = useState<boolean>(false);
@@ -384,8 +386,8 @@ export const ListingMetadata: React.FC<ListingMetadataProps> = ({
           <button
             type="button"
             onClick={() => {
-              if (listing.seller?.id) {
-                window.location.href = `/toko-saya?seller=${encodeURIComponent(listing.seller.id)}`;
+              if (onViewSellerProfile && listing.seller?.id) {
+                onViewSellerProfile(listing.seller.id);
               }
             }}
             id="btn-view-seller-profile"

@@ -40,12 +40,14 @@ describe("TokoSayaFeature Component & Hooks", () => {
   afterEach(() => {
     cleanup();
   });
-  it("renders seller header, statistics, status filter tabs, and seller listing grid", () => {
+  it("renders seller header, statistics, status filter tabs, and seller listing grid in visitor mode", () => {
     render(<TokoSayaFeature initialListings={mockListings} sellerId="seller-123" />);
 
-    expect(screen.getByText("Toko Saya")).not.toBeNull();
+    // In visitor mode: shows seller's store name, listings, and no "Pasang Iklan" button
+    expect(screen.getByText("Toko Kamera Surakarta")).not.toBeNull();
     expect(screen.getByText("Kamera Canon EOS 80D")).not.toBeNull();
     expect(screen.getByText("Lensa Canon 50mm f1.8")).not.toBeNull();
+    expect(screen.queryByRole("button", { name: /Pasang Iklan/i })).toBeNull();
   });
 
   it("filters seller listings by status tab click (Aktif vs Terjual)", () => {
@@ -74,14 +76,32 @@ describe("TokoSayaFeature Component & Hooks", () => {
     expect(screen.getByText("Lensa Canon 50mm f1.8")).not.toBeNull();
   });
 
-  it("triggers create listing form modal on header button click", () => {
+  it("visitor mode does not render management action buttons (Edit, Status, Hapus)", () => {
     render(<TokoSayaFeature initialListings={mockListings} sellerId="seller-123" />);
+
+    // In visitor mode: management buttons should not be rendered
+    expect(screen.queryByRole("button", { name: /Edit/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Tandai Terjual/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Hapus/i })).toBeNull();
+  });
+
+  it("triggers create listing form modal on header button click in owner mode", () => {
+    // In owner mode (no sellerId passed, representing current user's store)
+    render(<TokoSayaFeature initialListings={mockListings} />);
 
     const createBtn = screen.getByRole("button", { name: /Pasang Iklan/i });
     fireEvent.click(createBtn);
 
     expect(screen.getByText("Pasang Iklan Barang Baru")).not.toBeNull();
     expect(screen.getByText("Batal")).not.toBeNull();
+  });
+
+  it("owner mode renders management action buttons (Edit, Status, Hapus)", () => {
+    render(<TokoSayaFeature initialListings={mockListings} />);
+
+    // In owner mode: management buttons are rendered on listing cards
+    const editBtns = screen.getAllByRole("button", { name: /Edit/i });
+    expect(editBtns.length).toBeGreaterThan(0);
   });
 });
 
