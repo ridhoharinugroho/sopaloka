@@ -106,7 +106,7 @@ export const TokoSayaFeature: React.FC<TokoSayaFeatureProps> = ({
       {/* Create / Edit Listing Modal */}
       {isCreatingListing && (
         <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto animate-fade-in"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto animate-fade-in"
           onClick={handleCloseForm}
         >
           <div

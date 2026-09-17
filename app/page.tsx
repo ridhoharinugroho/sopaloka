@@ -111,9 +111,17 @@ export default function HomePage() {
 
   const handleProfileNavClick = () => {
     closeAllModals();
-    setActiveTab("profile");
     if (isUserLoggedIn()) {
-      setIsProfileModalOpen(true);
+      router.push("/profil");
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  };
+
+  const handleCreateListingClick = () => {
+    closeAllModals();
+    if (isUserLoggedIn()) {
+      router.push("/tambah-barang");
     } else {
       setIsAuthModalOpen(true);
     }
@@ -164,10 +172,7 @@ export default function HomePage() {
           closeAllModals();
           setIsNotifModalOpen(true);
         }}
-        onCreateListingClick={() => {
-          closeAllModals();
-          setIsCreateListingModalOpen(true);
-        }}
+        onCreateListingClick={handleCreateListingClick}
         onTraktirKopiClick={() => {
           closeAllModals();
           setIsTraktirKopiModalOpen(true);
@@ -184,7 +189,7 @@ export default function HomePage() {
           onSelectRegion={setSelectedRegion}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
-          onCreateListingClick={() => setIsCreateListingModalOpen(true)}
+          onCreateListingClick={handleCreateListingClick}
         />
       </AppShell>
 

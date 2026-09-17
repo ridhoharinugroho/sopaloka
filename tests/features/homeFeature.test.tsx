@@ -1,11 +1,21 @@
 // @vitest-environment jsdom
 import React from "react";
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { HomeFeature } from "../../src/features/home/HomeFeature";
 import { mapListingDtoToDomain } from "../../src/domain/listing/listing.mapper";
 import type { SupabaseListingRowDTO } from "../../src/domain/listing/listing.dto";
+
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: mockPush,
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+  }),
+}));
 
 const MOCK_LISTINGS_DTO: SupabaseListingRowDTO[] = [
   {
@@ -63,6 +73,7 @@ const mockListings = MOCK_LISTINGS_DTO.map(mapListingDtoToDomain);
 describe("HomeFeature (Modular Home Browsing)", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
+    mockPush.mockClear();
   });
 
   it("renders hero header, category pills, region pills, and listing grid", () => {
@@ -86,21 +97,13 @@ describe("HomeFeature (Modular Home Browsing)", () => {
     expect(screen.getByText("Sepeda Motor Honda Vario 125")).not.toBeNull();
   });
 
-  it("opens listing detail modal on card click and closes on dismiss button click", () => {
+  it("navigates to listing detail page on card click", () => {
     render(<HomeFeature initialListings={mockListings} />);
 
     // Click on listing card
     const cardTitle = screen.getByText("Laptop ThinkPad T480 Core i7");
     fireEvent.click(cardTitle);
 
-    // Modal overlay should be visible
-    expect(screen.getByTestId("listing-detail-modal-overlay")).not.toBeNull();
-    expect(screen.getByText("Kondisi mulus RAM 16GB SSD 512GB")).not.toBeNull();
-
-    // Close modal
-    const closeBtn = screen.getByLabelText("Tutup Detail");
-    fireEvent.click(closeBtn);
-
-    expect(screen.queryByTestId("listing-detail-modal-overlay")).toBeNull();
+    expect(mockPush).toHaveBeenCalledWith("/barang/lst-101");
   });
 });

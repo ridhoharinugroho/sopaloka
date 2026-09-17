@@ -1,5 +1,5 @@
 import React from "react";
-import { Coffee, HeartHandshake, QrCode, MessageCircle } from "lucide-react";
+import { Coffee, HeartHandshake, QrCode, MessageCircle, X } from "lucide-react";
 
 export interface TraktirKopiModalProps {
   isOpen: boolean;
@@ -32,6 +32,14 @@ export const TraktirKopiModal: React.FC<TraktirKopiModalProps> = ({ isOpen, onCl
               <p className="text-[10px] sm:text-xs text-rose-200 font-medium">SOPALOKA</p>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
+            aria-label="Tutup Traktir Kopi"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Body */}

@@ -37,6 +37,7 @@ export interface ProfileModalProps {
   onOpenReviews?: () => void;
   onLogoutSuccess?: () => void;
   className?: string;
+  isPage?: boolean;
 }
 
 const REGIONS = [
@@ -55,6 +56,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   onOpenReviews,
   onLogoutSuccess,
   className = "",
+  isPage = false,
 }) => {
   const [user, setUser] = useState<RegisteredUser | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -184,15 +186,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     }
   };
 
-  return (
+  const content = (
     <div
-      className="fixed inset-0 z-[10000] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fade-in"
-      onClick={onClose}
+      className={`relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col ${
+        isPage ? "max-h-none border-0 shadow-lg" : "max-h-[92vh]"
+      } ${className}`.trim()}
+      onClick={(e) => e.stopPropagation()}
     >
-      <div
-        className={`relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[92vh] ${className}`.trim()}
-        onClick={(e) => e.stopPropagation()}
-      >
         {/* Header Modal */}
         <div className="bg-gradient-to-r from-rose-950 via-slate-900 to-rose-900 p-4 sm:p-5 text-white flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -517,6 +517,18 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           </div>
         )}
       </div>
+  );
+
+  if (isPage) {
+    return content;
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[10000] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fade-in"
+      onClick={onClose}
+    >
+      {content}
     </div>
   );
 };

@@ -10,6 +10,8 @@ import { ListingDetail } from "../listing/components/ListingDetail";
 import type { ListingModel } from "../../domain/listing/listing.contract";
 import { isFavorite } from "../../services/listingService";
 
+import { useRouter } from "next/navigation";
+
 export interface HomeFeatureProps extends UseHomeFeedProps {
   onCreateListingClick?: () => void;
   showFavoritesOnly?: boolean;
@@ -17,6 +19,7 @@ export interface HomeFeatureProps extends UseHomeFeedProps {
   onSelectRegion?: (region: string) => void;
   selectedCategory?: string;
   onSelectCategory?: (category: string) => void;
+  onListingClick?: (listing: ListingModel) => void;
   className?: string;
 }
 
@@ -28,8 +31,17 @@ export const HomeFeature: React.FC<HomeFeatureProps> = ({
   onSelectRegion,
   selectedCategory,
   onSelectCategory,
+  onListingClick: customOnListingClick,
   className = "",
 }) => {
+  let router: any = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    router = useRouter();
+  } catch (_err) {
+    // Safe fallback when rendered outside Next.js App Router context
+  }
+
   const {
     listings,
     activeCategory: internalCategory,
@@ -52,9 +64,15 @@ export const HomeFeature: React.FC<HomeFeatureProps> = ({
   }, []);
 
   const handleListingClick = useCallback((listing: ListingModel) => {
-    setActiveImageIndex(0);
-    openListingDetail(listing);
-  }, [openListingDetail]);
+    if (customOnListingClick) {
+      customOnListingClick(listing);
+    } else if (router?.push) {
+      router.push(`/barang/${listing.id}`);
+    } else {
+      setActiveImageIndex(0);
+      openListingDetail(listing);
+    }
+  }, [customOnListingClick, router, openListingDetail]);
 
   const displayedListings = React.useMemo(() => {
     if (!showFavoritesOnly) return listings;
